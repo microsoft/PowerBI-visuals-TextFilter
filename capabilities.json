@@ -1,0 +1,39 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Field",
+            "name": "field",
+            "kind": "Grouping"
+        }
+    ],
+    "objects": {
+        "general": {
+            "displayName": "General",
+            "properties": {
+                "filter": {
+                    "type": {
+                        "filter": true
+                    }
+                }
+            }
+        }
+    },
+    "dataViewMappings": [
+        {
+            "conditions": [
+                {
+                    "field": {
+                        "max": 1
+                    }
+                }
+            ],
+            "categorical": {
+                "categories": {
+                    "for": {
+                        "in": "field"
+                    }
+                }
+            }
+        }
+    ]
+}

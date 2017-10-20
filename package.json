@@ -1,0 +1,9 @@
+{
+  "name": "text-filter",
+  "dependencies": {
+    "powerbi-visuals-utils-dataviewutils": "1.2.0"
+  },
+  "devDependencies": {
+    "powerbi-models": "^0.11.3"
+  }
+}
