@@ -10,11 +10,16 @@
         "general": {
             "displayName": "General",
             "properties": {
-                "filter": {
-                    "type": {
-                        "filter": true
-                    }
+              "filter": {
+                "type": {
+                  "filter": true
                 }
+              },
+              "searchText": {
+                "type": {
+                  "text": true
+                }
+              }
             }
         }
     },

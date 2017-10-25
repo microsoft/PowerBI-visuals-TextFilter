@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+import DataViewObjects = powerbi.extensibility.utils.dataview.DataViewObjects;
+
 const models: any = window["powerbi-models"];
 module powerbi.extensibility.visual {
     "use strict";
@@ -33,6 +35,7 @@ module powerbi.extensibility.visual {
         private clearButton: HTMLButtonElement;
         private column: powerbi.DataViewMetadataColumn;
         private host: powerbi.extensibility.visual.IVisualHost;
+        private dataViewObjectParser: powerbi.extensibility.utils.dataview.DataViewObjectsParser;
 
         constructor(options: VisualConstructorOptions) {
             this.target = options.element;
@@ -64,6 +67,15 @@ module powerbi.extensibility.visual {
                 );
 
                 this.host.applyJsonFilter(filter, "general", "filter");
+                this.host.persistProperties({
+                  replace: [{
+                    objectName: 'general',
+                    selector: null,
+                    properties: {
+                      searchText: text
+                    }
+                  }]
+                });
                 this.searchBox.value = text;
             }
         }
@@ -71,12 +83,15 @@ module powerbi.extensibility.visual {
         public update(options: VisualUpdateOptions) {
             const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
             const newColumn = metadata && metadata.columns && metadata.columns[0];
-
+            const properties = DataViewObjects.getObject(options.dataViews[0].metadata.objects, "general"); 
+            
             if (this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
-                this.performSearch("");
-            }
-
-            this.column = newColumn;
+              this.performSearch("");
+            } else {
+              this.searchBox.value = (properties["searchText"]) ? properties["searchText"].toString() : '';
+            };
+          
+            this.column = newColumn;           
         }
     }
 }
