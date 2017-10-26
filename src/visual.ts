@@ -23,6 +23,25 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+module powerbi.extensibility.visual {
+  export function logExceptions(): MethodDecorator {
+    return function (target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<Function>)
+      : TypedPropertyDescriptor<Function> {
+
+      return {
+        value: function () {
+          try {
+            return descriptor.value.apply(this, arguments);
+          } catch (e) {
+            console.error(e);
+            throw e;
+          }
+        }
+      }
+    }
+  }
+}
+
 
 import DataViewObjects = powerbi.extensibility.utils.dataview.DataViewObjects;
 
@@ -32,24 +51,43 @@ module powerbi.extensibility.visual {
     export class Visual implements IVisual {
         private target: HTMLElement;
         private searchBox: HTMLInputElement;
+        private searchButton: HTMLButtonElement;
         private clearButton: HTMLButtonElement;
         private column: powerbi.DataViewMetadataColumn;
         private host: powerbi.extensibility.visual.IVisualHost;
         private dataViewObjectParser: powerbi.extensibility.utils.dataview.DataViewObjectsParser;
 
         constructor(options: VisualConstructorOptions) {
+          debugger;
             this.target = options.element;
-            this.target.innerHTML = `<input style="padding:0;margin:0;height:20px;border:1.1px solid #ccc" type='text' placeholder='Search'><button style="height:22px">Clear</button>`;
-            this.searchBox = this.target.childNodes[0] as HTMLInputElement;
-            this.searchBox.addEventListener("change", (e) => this.performSearch(this.searchBox.value));
+            this.target.innerHTML = `<div class="text-filter-search">
+                                        <input aria-label="Enter your search" type="search" placeholder="Search" name="search-field">
+                                        <button class="c-glyph search-button" name="search-button">
+                                          <span class="x-screen-reader">Search</span>
+                                        </button>
+                                        <button class="c-glyph clear-button" name="clear-button">
+                                          <span class="x-screen-reader">Clear</span>
+                                        </button>
+                                    </div>`;
 
-            this.clearButton = this.target.childNodes[1] as HTMLButtonElement;
+            //this.searchButton = this.target.childNodes[0].childNodes[3] as HTMLButtonElement;
+            //this.searchButton.addEventListener("click", () => this.performSearch(this.searchBox.value));
+            //this.clearButton = this.target.childNodes[1].childNodes[5] as HTMLButtonElement;
+            //this.clearButton.addEventListener("click", () => this.performSearch(''));
+
+            this.searchBox = this.target.childNodes[0].childNodes[1] as HTMLInputElement;
+            this.searchBox.addEventListener("change", (e) => this.performSearch(this.searchBox.value));
+            this.searchButton = this.target.childNodes[0].childNodes[3] as HTMLButtonElement;
+            this.searchButton.addEventListener("click", () => this.performSearch(this.searchBox.value));
+            this.clearButton = this.target.childNodes[0].childNodes[5] as HTMLButtonElement;
             this.clearButton.addEventListener("click", () => this.performSearch(''));
+            
             this.host = options.host;
             console.log(models);
         }
 
         performSearch(text) {
+          debugger;
             if (this.column) {
                 const target = {
                     table: this.column.queryName.substr(0, this.column.queryName.indexOf('.')),
@@ -81,17 +119,18 @@ module powerbi.extensibility.visual {
         }
 
         public update(options: VisualUpdateOptions) {
+          debugger;
             const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
             const newColumn = metadata && metadata.columns && metadata.columns[0];
             const properties = DataViewObjects.getObject(options.dataViews[0].metadata.objects, "general"); 
             
             if (this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
               this.performSearch("");
-            } else {
-              this.searchBox.value = (properties["searchText"]) ? properties["searchText"].toString() : '';
             };
-          
-            this.column = newColumn;           
+
+            this.column = newColumn;
+            console.log("Text:" + properties["searchText"] )
+            this.searchBox.value = (properties["searchText"]) ? properties["searchText"].toString() : '';
         }
     }
 }
