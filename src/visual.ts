@@ -36,7 +36,7 @@ module powerbi.extensibility.visual {
         private clearButton: HTMLButtonElement;
         private column: powerbi.DataViewMetadataColumn;
         private host: powerbi.extensibility.visual.IVisualHost;
-        private dataViewObjectParser: powerbi.extensibility.utils.dataview.DataViewObjectsParser;
+
 
         constructor(options: VisualConstructorOptions) {
             this.target = options.element;
@@ -58,50 +58,52 @@ module powerbi.extensibility.visual {
             this.clearButton.addEventListener("click", () => this.performSearch(''));
             
             this.host = options.host;
-            console.log(models);
+        }
+        // Perfom search/filtering in a column
+        public performSearch(text) {
+          if (this.column) {
+            const target = {
+              table: this.column.queryName.substr(0, this.column.queryName.indexOf('.')),
+              column: this.column.displayName
+            };
+
+            const filter = new models.AdvancedFilter(
+              target,
+              "And",
+              {
+                operator: "Contains",
+                value: text
+              }
+            );
+
+            this.host.applyJsonFilter(filter, "general", "filter");
+
+            //save an input text value
+            this.host.persistProperties({
+              replace: [{
+                objectName: 'general',
+                selector: null,
+                properties: {
+                  searchText: text
+                }
+              }]
+            });
+          }
+          this.searchBox.value = text;
         }
 
-        performSearch(text) {
-            if (this.column) {
-                const target = {
-                  table: this.column.queryName.substr(0, this.column.queryName.indexOf('.')),
-                  column: this.column.displayName
-                };
-
-                const filter = new models.AdvancedFilter(
-                  target,
-                  "And",
-                  {
-                      operator: "Contains",
-                      value: text
-                  }
-                );
-
-                this.host.applyJsonFilter(filter, "general", "filter");
-                this.host.persistProperties({
-                  replace: [{
-                    objectName: 'general',
-                    selector: null,
-                    properties: {
-                      searchText: text
-                    }
-                  }]
-                });
-                this.searchBox.value = text;
-            }
-        }
-
+        //Check for update and perform it
         public update(options: VisualUpdateOptions) {
             const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
             const newColumn = metadata && metadata.columns && metadata.columns[0];
-            const properties = DataViewObjects.getObject(options.dataViews[0].metadata.objects, "general"); 
-            
-            if (this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
+            const objectCheck = metadata && metadata.objects;
+            const properties = DataViewObjects.getObject(objectCheck, "general") as any; 
+
+            if ((this.column && newColumn && this.column.queryName !== newColumn.queryName) || (!this.column && newColumn))
               this.performSearch("");
-            };
 
             this.column = newColumn;
-            this.searchBox.value = (properties["searchText"]) ? properties["searchText"].toString() : '';
+            this.searchBox.value = (properties.searchText) ? ""+(properties.searchText) : '';
         }
     }
 }
