@@ -51,7 +51,11 @@ module powerbi.extensibility.visual {
                                     </div>`;
 
             this.searchBox = this.target.childNodes[0].childNodes[1] as HTMLInputElement;
-            this.searchBox.addEventListener("change", (e) => this.performSearch(this.searchBox.value));
+            this.searchBox.addEventListener("keydown", (e) => {
+              if (e.keyCode == 13) {
+                this.performSearch(this.searchBox.value);
+              }
+            });
             this.searchButton = this.target.childNodes[0].childNodes[3] as HTMLButtonElement;
             this.searchButton.addEventListener("click", () => this.performSearch(this.searchBox.value));
             this.clearButton = this.target.childNodes[0].childNodes[5] as HTMLButtonElement;
@@ -59,7 +63,11 @@ module powerbi.extensibility.visual {
             
             this.host = options.host;
         }
-        // Perfom search/filtering in a column
+
+        /** 
+         * Perfom search/filtering in a column
+         * @param {string} text - text to filter on
+         */
         public performSearch(text) {
           if (this.column) {
             const target = {
@@ -75,9 +83,6 @@ module powerbi.extensibility.visual {
                 value: text
               }
             );
-
-            this.host.applyJsonFilter(filter, "general", "filter");
-
             //save an input text value
             this.host.persistProperties({
               replace: [{
@@ -88,11 +93,14 @@ module powerbi.extensibility.visual {
                 }
               }]
             });
+            this.host.applyJsonFilter(filter, "general", "filter");
           }
           this.searchBox.value = text;
         }
 
-        //Check for update and perform it
+        /**
+         *Check for update and perform it
+         */
         public update(options: VisualUpdateOptions) {
             const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
             const newColumn = metadata && metadata.columns && metadata.columns[0];
