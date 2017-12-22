@@ -49,7 +49,6 @@ module powerbi.extensibility.visual {
                                           <span class="x-screen-reader">Clear</span>
                                         </button>
                                     </div>`;
-
             this.searchBox = this.target.childNodes[0].childNodes[1] as HTMLInputElement;
             this.searchBox.addEventListener("keydown", (e) => {
               if (e.keyCode == 13) {
@@ -72,7 +71,7 @@ module powerbi.extensibility.visual {
           if (this.column) {
             const target = {
               table: this.column.queryName.substr(0, this.column.queryName.indexOf('.')),
-              column: this.column.displayName
+              column: this.column.queryName.substr(this.column.queryName.indexOf('.') + 1)
             };
 
             const filter = new models.AdvancedFilter(
