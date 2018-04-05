@@ -1,3 +1,4 @@
+# Text Filter PowerBI Visual
 
 # Contributing
 
