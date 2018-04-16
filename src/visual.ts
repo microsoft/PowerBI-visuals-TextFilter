@@ -25,6 +25,8 @@
  */
 
 import DataViewObjects = powerbi.extensibility.utils.dataview.DataViewObjects;
+import FilterAction = powerbi.FilterAction;
+import FilterManager = powerbi.extensibility.utils.filter.FilterManager;
 
 const models: any = window["powerbi-models"];
 module powerbi.extensibility.visual {
@@ -67,32 +69,28 @@ module powerbi.extensibility.visual {
          * Perfom search/filtering in a column
          * @param {string} text - text to filter on
          */
-        public performSearch(text) {
+        public performSearch(text: string) {
           if (this.column) {
+            const isBlank = ((text || "") + "").match(/^\s*$/);
             const target = {
               table: this.column.queryName.substr(0, this.column.queryName.indexOf('.')),
               column: this.column.queryName.substr(this.column.queryName.indexOf('.') + 1)
             };
 
-            const filter = new models.AdvancedFilter(
-              target,
-              "And",
-              {
-                operator: "Contains",
-                value: text
-              }
-            );
-            //save an input text value
-            this.host.persistProperties({
-              replace: [{
-                objectName: 'general',
-                selector: null,
-                properties: {
-                  searchText: text
+            let filter: any = null;
+            let action = FilterAction.remove;
+            if (!isBlank) {
+              filter = new models.AdvancedFilter(
+                target,
+                "And",
+                {
+                  operator: "Contains",
+                  value: text
                 }
-              }]
-            });
-            this.host.applyJsonFilter(filter, "general", "filter");
+              );
+              action = FilterAction.merge;
+            }
+            this.host.applyJsonFilter(filter, "general", "filter", action);
           }
           this.searchBox.value = text;
         }
@@ -104,13 +102,23 @@ module powerbi.extensibility.visual {
             const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
             const newColumn = metadata && metadata.columns && metadata.columns[0];
             const objectCheck = metadata && metadata.objects;
-            const properties = DataViewObjects.getObject(objectCheck, "general") as any; 
+            const properties = DataViewObjects.getObject(objectCheck, "general") as any || {}; 
+            let searchText = "";
 
-            if ((this.column && newColumn && this.column.queryName !== newColumn.queryName) || (!this.column && newColumn))
+            // We had a column, but now it is empty, or it has changed.
+            if (this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
               this.performSearch("");
 
+            // Well, it hasn't changed, then lets try to load the existing search text.
+            } else if (properties.filter) {
+              const appliedFilter = FilterManager.restoreFilter(properties.filter) as IAdvancedFilter;
+              if (appliedFilter && appliedFilter.conditions && appliedFilter.conditions.length === 1) {
+                searchText = (appliedFilter.conditions[0].value || "") + "";
+              }
+            }
+
+            this.searchBox.value = searchText;
             this.column = newColumn;
-            this.searchBox.value = (properties.searchText) ? ""+(properties.searchText) : '';
         }
     }
 }
