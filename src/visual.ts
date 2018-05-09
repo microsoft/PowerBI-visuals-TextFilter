@@ -106,7 +106,7 @@ module powerbi.extensibility.visual {
             let searchText = "";
 
             // We had a column, but now it is empty, or it has changed.
-            if (this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
+            if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
               this.performSearch("");
 
             // Well, it hasn't changed, then lets try to load the existing search text.
