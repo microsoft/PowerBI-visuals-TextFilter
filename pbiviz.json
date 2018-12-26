@@ -1,19 +1,19 @@
 {
   "visual": {
-    "name": "textFilter",
-    "displayName": "Text Filter",
-    "guid": "textFilter25A4896A83E0487089E2B90C9AE57C8A",
+    "name": "textFilterV2",
+    "displayName": "Text FilterV2",
+    "guid": "textFilterV225A4896A83E0487089E2B90C9AE57C8A",
     "visualClassName": "Visual",
-    "version": "1.1.0",
+    "version": "1.0.0",
     "description": "Provides a search box that can be placed anywhere in your dashboard. This adds a text filtering capability for quick searching across your data.",
     "supportUrl": "",
     "gitHubUrl": ""
   },
-  "output": "dist/textFilter.pbiviz",
+  "output": "dist/textFilterV2.pbiviz",
   "apiVersion": "1.11.0",
   "author": {
-    "name": "Microsoft (experimental)",
-    "email": "msrvizsupport@microsoft.com"
+    "name": "Presley Yuan",
+    "email": "pryuan@microsoft.com"
   },
   "assets": {
     "icon": "assets/icon.png"

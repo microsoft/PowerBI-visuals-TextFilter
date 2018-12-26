@@ -38,7 +38,7 @@ module powerbi.extensibility.visual {
         private clearButton: HTMLButtonElement;
         private column: powerbi.DataViewMetadataColumn;
         private host: powerbi.extensibility.visual.IVisualHost;
-
+        private visualSettings: VisualSettings;
 
         constructor(options: VisualConstructorOptions) {
             this.target = options.element;
@@ -95,6 +95,12 @@ module powerbi.extensibility.visual {
           this.searchBox.value = text;
         }
 
+        public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
+          const settings: VisualSettings = this.visualSettings ||
+         VisualSettings.getDefault() as VisualSettings;
+          return VisualSettings.enumerateObjectInstances(settings, options);
+         }
+
         /**
          *Check for update and perform it
          */
@@ -104,6 +110,25 @@ module powerbi.extensibility.visual {
             const objectCheck = metadata && metadata.objects;
             const properties = DataViewObjects.getObject(objectCheck, "general") as any || {}; 
             let searchText = "";
+            let dataView: DataView = options.dataViews[0];
+
+            this.visualSettings = VisualSettings.parse<VisualSettings>(dataView);
+
+            //search box input style
+            this.searchBox.placeholder = this.visualSettings.search.placeholder;
+            this.searchBox.style.fontSize = this.visualSettings.search.fontSize.toString()+'px';
+            this.searchBox.style.height = this.visualSettings.search.height.toString()+'px';
+            this.searchBox.style.paddingRight = (2*(this.visualSettings.search.height+3)).toString()+'px';
+            this.searchBox.style.borderColor = this.visualSettings.search.outline;
+
+            //clear button style
+            this.clearButton.style.width = (this.visualSettings.search.height-4).toString()+'px';
+            this.clearButton.style.height = (this.visualSettings.search.height-4).toString()+'px';
+
+            //search button style
+            this.searchButton.style.width = (this.visualSettings.search.height-4).toString()+'px';
+            this.searchButton.style.height = (this.visualSettings.search.height-4).toString()+'px';
+            this.searchButton.style.right = (this.visualSettings.search.height - 4 + 3 + 3).toString() + 'px';
 
             // We had a column, but now it is empty, or it has changed.
             if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {

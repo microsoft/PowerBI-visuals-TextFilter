@@ -21,6 +21,45 @@
                 }
               }
             }
+        },
+        "search": {
+            "displayName": "Search",
+            "properties":{
+                "placeholder": {
+                    "displayName": "Placeholder",
+                    "description": "The placeholder text",
+                    "type": {
+                        "text": true
+                    }
+                },
+                "fontSize":{
+                    "displayName": "Text Size",
+                    "description": "Search box text size",
+                    "type": {
+                        "formatting": {
+                            "fontSize": true
+                        }
+                    }
+                },
+                "height":{
+                    "displayName": "Height",
+                    "description": "Search box height",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "outline":{
+                    "displayName": "Outline",
+                    "description": "Search box outline",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "dataViewMappings": [
