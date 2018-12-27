@@ -113,6 +113,7 @@ module powerbi.extensibility.visual {
             let dataView: DataView = options.dataViews[0];
 
             this.visualSettings = VisualSettings.parse<VisualSettings>(dataView);
+            this.visualSettings.search.height = Math.max(24, this.visualSettings.search.height);
 
             //search box input style
             this.searchBox.placeholder = this.visualSettings.search.placeholder;
