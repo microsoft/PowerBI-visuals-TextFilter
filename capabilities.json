@@ -36,6 +36,11 @@
               "categories": {
                 "for": {
                   "in": "field"
+                },
+                "dataReductionAlgorithm": {
+                  "top": {
+                    "count": 30000
+                  }
                 }
               }
             }
