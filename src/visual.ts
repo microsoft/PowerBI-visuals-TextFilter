@@ -34,6 +34,7 @@ import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
 import FilterAction = powerbi.FilterAction;
 import * as models from 'powerbi-models';
+import '@babel/polyfill';
 
 export class Visual implements IVisual {
   private target: HTMLElement;
