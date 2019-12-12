@@ -4,15 +4,15 @@
     "displayName": "Text Filter",
     "guid": "textFilter25A4896A83E0487089E2B90C9AE57C8A",
     "visualClassName": "Visual",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Provides a search box that can be placed anywhere in your dashboard. This adds a text filtering capability for quick searching across your data.",
-    "supportUrl": "",
-    "gitHubUrl": ""
+    "supportUrl": "https://community.powerbi.com",
+    "gitHubUrl": "https://github.com/microsoft/PowerBI-visuals-TextFilter"
   },
   "output": "dist/textFilter.pbiviz",
   "apiVersion": "1.11.0",
   "author": {
-    "name": "Microsoft (experimental)",
+    "name": "Microsoft",
     "email": "msrvizsupport@microsoft.com"
   },
   "assets": {
