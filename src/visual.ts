@@ -37,7 +37,7 @@ import DataView = powerbi.DataView;
 import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
-import { IAdvancedFilter, AdvancedFilter, IAdvancedFilterCondition, Filter } from "powerbi-models";
+import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
 import * as d3 from "d3";
 import { VisualSettings } from "./settings";
 
