@@ -1,49 +1,70 @@
 {
-    "dataRoles": [
-        {
-            "displayName": "Field",
-            "name": "field",
-            "kind": "Grouping"
+  "dataRoles": [
+    {
+      "displayName": "Field",
+      "name": "field",
+      "kind": "Grouping"
+    }
+  ],
+  "objects": {
+    "general": {
+      "displayName": "General",
+      "properties": {
+        "filter": {
+          "type": {
+            "filter": true
+          }
+        },
+        "searchText": {
+          "type": {
+            "text": true
+          }
         }
-    ],
-    "objects": {
-        "general": {
-            "displayName": "General",
-            "properties": {
-              "filter": {
-                "type": {
-                  "filter": true
-                }
-              },
-              "searchText": {
-                "type": {
-                  "text": true
-                }
-              }
-            }
-        }
+      }
     },
-    "dataViewMappings": [
-        {
-            "conditions": [
-                {
-                    "field": {
-                        "max": 1
-                    }
-                }
-            ],
-            "categorical": {
-              "categories": {
-                "for": {
-                  "in": "field"
-                },
-                "dataReductionAlgorithm": {
-                  "top": {
-                    "count": 30000
-                  }
-                }
-              }
+    "font": {
+      "displayName": "Font",
+      "properties": {
+        "fontFamily": {
+          "displayName": "Font Family",
+          "type": {
+            "formatting": {
+              "fontFamily": true
             }
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "type": {
+            "formatting": {
+              "fontSize": true
+            }
+          }
         }
-    ]
+      }
+    }
+  },
+  "dataViewMappings": [
+    {
+      "conditions": [
+        {
+          "field": {
+            "max": 1
+          }
+        }
+      ],
+      "categorical": {
+        "categories": {
+          "for": {
+            "in": "field"
+          },
+          "dataReductionAlgorithm": {
+            "top": {
+              "count": 30000
+            }
+          }
+        }
+      }
+    }
+  ]
 }
