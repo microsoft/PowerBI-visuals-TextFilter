@@ -40,7 +40,9 @@ import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
 import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
 import * as d3 from "d3";
-import { VisualSettings } from "./settings";
+import { TextBoxSettings, VisualSettings } from "./settings";
+
+const pxToPt = 0.75;
 
 export class Visual implements IVisual {
 
@@ -64,7 +66,6 @@ export class Visual implements IVisual {
       .append("input")
       .attr("aria-label", "Enter your search")
       .attr("type", "text")
-      .attr("placeholder", "Search")
       .attr("name", "search-field");
     this.searchButton = this.searchUi
       .append("button")
@@ -82,6 +83,7 @@ export class Visual implements IVisual {
       .append("span")
       .classed("x-screen-reader", true)
       .text("Clear");
+    this.updateUiSizing();
     this.searchBox.on("keydown", (e) => {
       if (d3.event.keyCode === 13) {
         this.performSearch(this.searchBox.property("value"));
@@ -114,28 +116,7 @@ export class Visual implements IVisual {
     const properties = <any>dataViewObjects.getObject(objectCheck, "general") || {};
     let searchText = "";
 
-    // Apply font settings and adjust other elements
-    const
-      pxToPt = 0.75,
-      fontSize = this.settings.font.fontSize,
-      fontScaleStd = (fontSize / pxToPt) + 24,
-      fontScaleSml = (fontSize / pxToPt) + 20,
-      fontScaleLrg = (fontSize / pxToPt) + 26;
-    this.searchUi
-      .style('height', `${fontScaleStd}px`)
-      .style('font-size', `${fontSize}pt`)
-      .style('font-family', this.settings.font.fontFamily);
-    this.searchBox
-      .style('width', `calc(100% - ${fontScaleStd}px)`)
-      .style('padding-right', `${fontScaleStd}px`);
-    this.searchButton
-      .style('right', `${fontScaleLrg}px`)
-      .style('width', `${fontScaleSml}px`)
-      .style('height', `${fontScaleSml}px`)
-      .style('font-size', `${fontSize}pt`)
-    this.clearButton
-      .style('width', `${fontScaleStd}px`)
-      .style('height', `${fontScaleStd}px`);
+    this.updateUiSizing();
 
     // We had a column, but now it is empty, or it has changed.
     if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
@@ -153,6 +134,34 @@ export class Visual implements IVisual {
 
     this.events.renderingFinished(options);
 
+  }
+
+  private updateUiSizing() {
+    const
+      textBox: TextBoxSettings = this.settings?.textBox ?? VisualSettings.getDefault()["textBox"],
+      pxToPt = 0.75,
+      fontSize = textBox.fontSize,
+      fontScaleStd = (fontSize / pxToPt) + 24,
+      fontScaleSml = (fontSize / pxToPt) + 20,
+      fontScaleLrg = (fontSize / pxToPt) + 26;
+    this.searchUi
+      .style('height', `${fontScaleStd}px`)
+      .style('font-size', `${fontSize}pt`)
+      .style('font-family', textBox.fontFamily);
+    this.searchBox
+      .attr('placeholder', textBox.placeholderText)
+      .style('width', `calc(100% - ${fontScaleStd}px)`)
+      .style('padding-right', `${fontScaleStd}px`)
+      .style('border-style', textBox.border && 'solid' || 'none')
+      .style('border-color', textBox.borderColor);
+    this.searchButton
+      .style('right', `${fontScaleLrg}px`)
+      .style('width', `${fontScaleSml}px`)
+      .style('height', `${fontScaleSml}px`)
+      .style('font-size', `${fontSize}pt`);
+    this.clearButton
+      .style('width', `${fontScaleStd}px`)
+      .style('height', `${fontScaleStd}px`);
   }
 
   /** 
@@ -195,6 +204,19 @@ export class Visual implements IVisual {
    *
    */
   public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] | VisualObjectInstanceEnumerationObject {
-    return VisualSettings.enumerateObjectInstances(this.settings || VisualSettings.getDefault(), options);
+    let objects = <VisualObjectInstanceEnumerationObject>
+                VisualSettings.enumerateObjectInstances(
+                    this.settings || VisualSettings.getDefault(),
+                    options
+                );
+    switch (options.objectName) {
+      case 'textBox': {
+          if (!this.settings.textBox.border) {
+            delete objects.instances[0].properties.borderColor;
+          }
+          break;
+      }
+    }
+    return objects;
   }
 }
