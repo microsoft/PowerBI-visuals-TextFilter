@@ -35,6 +35,7 @@ import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInst
 import VisualObjectInstance = powerbi.VisualObjectInstance;
 import DataView = powerbi.DataView;
 import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
+import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
 import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
@@ -51,46 +52,61 @@ export class Visual implements IVisual {
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
   private settings: VisualSettings;
+  private events: IVisualEventService;
 
   constructor(options: VisualConstructorOptions) {
+    this.events = options.host.eventService;
     this.target = options.element;
     this.searchUi = d3.select(this.target)
       .append("div")
-        .classed("text-filter-search", true);
+      .classed("text-filter-search", true);
     this.searchBox = this.searchUi
       .append("input")
-        .attr("aria-label", "Enter your search")
-        .attr("type", "text")
-        .attr("placeholder", "Search")
-        .attr("name", "search-field");
+      .attr("aria-label", "Enter your search")
+      .attr("type", "text")
+      .attr("placeholder", "Search")
+      .attr("name", "search-field");
     this.searchButton = this.searchUi
       .append("button")
-        .classed("c-glyph search-button", true)
-        .attr("name", "search-button");
+      .classed("c-glyph search-button", true)
+      .attr("name", "search-button");
     this.searchButton
       .append("span")
-        .classed("x-screen-reader", true)
-          .text("Search");
+      .classed("x-screen-reader", true)
+      .text("Search");
     this.clearButton = this.searchUi
       .append("button")
-        .classed("c-glyph clear-button", true)
-        .attr("name", "clear-button");
+      .classed("c-glyph clear-button", true)
+      .attr("name", "clear-button");
     this.clearButton
       .append("span")
       .classed("x-screen-reader", true)
-        .text("Clear");
+      .text("Clear");
     this.searchBox.on("keydown", (e) => {
       if (d3.event.keyCode === 13) {
         this.performSearch(this.searchBox.property("value"));
       }
     });
-    this.searchButton.on("click", () => this.performSearch(this.searchBox.property("value")));
-    this.clearButton.on("click", () => this.performSearch(""));
-
+    this.searchButton
+      .on("click", () => this.performSearch(this.searchBox.property("value")));
+    this.clearButton
+      .on("click", () => this.performSearch(""));
+    d3.select(this.target)
+      .on("contextmenu", () => {
+        const
+          mouseEvent: MouseEvent = d3.event,
+          selectionManager = options.host.createSelectionManager();
+          selectionManager.showContextMenu({}, {
+            x: mouseEvent.clientX,
+            y: mouseEvent.clientY
+        });
+        mouseEvent.preventDefault();
+      });
     this.host = options.host;
   }
 
   public update(options: VisualUpdateOptions) {
+    this.events.renderingStarted(options);
     this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
     const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
     const newColumn = metadata && metadata.columns && metadata.columns[0];
@@ -99,27 +115,27 @@ export class Visual implements IVisual {
     let searchText = "";
 
     // Apply font settings and adjust other elements
-      const
-        pxToPt = 0.75,        
-        fontSize = this.settings.font.fontSize,
-        fontScaleStd = (fontSize / pxToPt) + 24,
-        fontScaleSml = (fontSize / pxToPt) + 20,
-        fontScaleLrg = (fontSize / pxToPt) + 26;
-      this.searchUi
-        .style('height', `${fontScaleStd}px`)
-        .style('font-size', `${fontSize}pt`)
-        .style('font-family', this.settings.font.fontFamily);
-      this.searchBox
-        .style('width', `calc(100% - ${fontScaleStd}px)`)
-        .style('padding-right', `${fontScaleStd}px`);
-      this.searchButton
-        .style('right', `${fontScaleLrg}px`)
-        .style('width', `${fontScaleSml}px`)
-        .style('height', `${fontScaleSml}px`)
-        .style('font-size', `${fontSize}pt`)
-      this.clearButton
-        .style('width', `${fontScaleStd}px`)
-        .style('height', `${fontScaleStd}px`);
+    const
+      pxToPt = 0.75,
+      fontSize = this.settings.font.fontSize,
+      fontScaleStd = (fontSize / pxToPt) + 24,
+      fontScaleSml = (fontSize / pxToPt) + 20,
+      fontScaleLrg = (fontSize / pxToPt) + 26;
+    this.searchUi
+      .style('height', `${fontScaleStd}px`)
+      .style('font-size', `${fontSize}pt`)
+      .style('font-family', this.settings.font.fontFamily);
+    this.searchBox
+      .style('width', `calc(100% - ${fontScaleStd}px)`)
+      .style('padding-right', `${fontScaleStd}px`);
+    this.searchButton
+      .style('right', `${fontScaleLrg}px`)
+      .style('width', `${fontScaleSml}px`)
+      .style('height', `${fontScaleSml}px`)
+      .style('font-size', `${fontSize}pt`)
+    this.clearButton
+      .style('width', `${fontScaleStd}px`)
+      .style('height', `${fontScaleStd}px`);
 
     // We had a column, but now it is empty, or it has changed.
     if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
@@ -134,6 +150,9 @@ export class Visual implements IVisual {
 
     this.searchBox.property("value", searchText);
     this.column = newColumn;
+
+    this.events.renderingFinished(options);
+
   }
 
   /** 

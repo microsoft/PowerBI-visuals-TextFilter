@@ -14,7 +14,7 @@
     "core-js": "3.2.1",
     "d3": "^5.16.0",
     "powerbi-models": "^1.7.0",
-    "powerbi-visuals-api": "^2.6.2",
+    "powerbi-visuals-api": "^3.4.0",
     "powerbi-visuals-utils-dataviewutils": "2.2.1",
     "ts-loader": "6.1.0",
     "tslint": "^5.18.0",
