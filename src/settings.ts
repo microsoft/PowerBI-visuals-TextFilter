@@ -27,19 +27,30 @@
 import { dataViewObjectsParser } from "powerbi-visuals-utils-dataviewutils";
 import DataViewObjectsParser = dataViewObjectsParser.DataViewObjectsParser;
 
+/**
+ * @class VisualSettings
+ * Manages all custom properties for the visual
+ * 
+ * @property { TextBoxSettings } textBox    - Properties for text box display
+ */
 export class VisualSettings extends DataViewObjectsParser {
     public textBox: TextBoxSettings = new TextBoxSettings();
 }
 
+/**
+ * @class TextBoxSettings
+ * Manages properties for the text box used for searching
+ * 
+ * @property {string}   fontFamily      - Font family for filter
+ * @property {number}   fontSize        - Font size for filter
+ * @property {string}   placeholderText - Placeholder text message in box
+ * @property {boolean}  border          - Show box border
+ * @property {string}   borderColor     - Border color (if shown)
+ */
 export class TextBoxSettings {
-    // Font family for filter
     public fontFamily = '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif';
-    // Font size for filter
     public fontSize = 11;
-    // Placeholder text message in box
     public placeholderText = "Search";
-    // Show box border
     public border = true;
-    // Border color (if shown)
     public borderColor = "#000000";
 }

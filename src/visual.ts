@@ -42,7 +42,10 @@ import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
 import * as d3 from "d3";
 import { TextBoxSettings, VisualSettings } from "./settings";
 
-const pxToPt = 0.75;
+const pxToPt = 0.75,
+      fontPxAdjSml = 20,
+      fontPxAdjStd = 24,
+      fontPxAdjLrg = 26;
 
 export class Visual implements IVisual {
 
@@ -136,14 +139,16 @@ export class Visual implements IVisual {
 
   }
 
+  /**
+   * Ensures that the UI is sized according to the specified properties (or defaults, if not overridden).
+   */
   private updateUiSizing() {
     const
       textBox: TextBoxSettings = this.settings?.textBox ?? VisualSettings.getDefault()["textBox"],
-      pxToPt = 0.75,
       fontSize = textBox.fontSize,
-      fontScaleStd = (fontSize / pxToPt) + 24,
-      fontScaleSml = (fontSize / pxToPt) + 20,
-      fontScaleLrg = (fontSize / pxToPt) + 26;
+      fontScaleSml = (fontSize / pxToPt) + fontPxAdjSml,
+      fontScaleStd = (fontSize / pxToPt) + fontPxAdjStd,
+      fontScaleLrg = (fontSize / pxToPt) + fontPxAdjLrg;
     this.searchUi
       .style('height', `${fontScaleStd}px`)
       .style('font-size', `${fontSize}pt`)
