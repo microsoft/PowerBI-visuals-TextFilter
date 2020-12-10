@@ -23,12 +23,13 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-
 import DataViewObjects = powerbi.extensibility.utils.dataview.DataViewObjects;
 import FilterAction = powerbi.FilterAction;
 import FilterManager = powerbi.extensibility.utils.filter.FilterManager;
 
-const models: any = window["powerbi-models"];
+declare var require: any;
+const models: any = require("powerbi-models");
+window["powerbi-models"] = models;
 module powerbi.extensibility.visual {
     "use strict";
     export class Visual implements IVisual {

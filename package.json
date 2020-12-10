@@ -3,11 +3,12 @@
   "version": "1.2.1",
   "dependencies": {
     "d3": "3.5.5",
+    "globalize": "^1.6.0",
+    "powerbi-models": "^0.11.3",
     "powerbi-visuals-utils-dataviewutils": "1.2.0",
     "powerbi-visuals-utils-interactivityutils": "^3.2.0"
   },
   "devDependencies": {
-    "@types/d3": "3.5.38",
-    "powerbi-models": "^0.11.3"
+    "@types/d3": "3.5.38"
   }
 }
