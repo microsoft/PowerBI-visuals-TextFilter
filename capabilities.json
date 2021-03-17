@@ -19,6 +19,43 @@
           "type": {
             "text": true
           }
+        },
+        "searchMode": {
+          "displayName": "Search Mode",
+          "description": "The mode to use when performing a search",
+          "type": {
+            "enumeration": [{
+              "displayName": "Contains",
+              "value": "Contains"
+            }, {
+              "displayName": "Equals",
+              "value": "Is"
+            }, {
+              "displayName": "Starts With",
+              "value": "StartsWith"
+            }]
+          }
+        }
+      }
+    },
+    "search": {
+      "displayName": "Search",
+      "properties": {
+        "searchMode": {
+          "displayName": "Mode",
+          "description": "The mode to use when performing a search",
+          "type": {
+            "enumeration": [{
+              "displayName": "Contains",
+              "value": "Contains"
+            }, {
+              "displayName": "Equals",
+              "value": "Is"
+            }, {
+              "displayName": "Starts With",
+              "value": "StartsWith"
+            }]
+          }
         }
       }
     }

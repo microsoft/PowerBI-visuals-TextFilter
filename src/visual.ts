@@ -27,6 +27,12 @@ import DataViewObjects = powerbi.extensibility.utils.dataview.DataViewObjects;
 import FilterAction = powerbi.FilterAction;
 import FilterManager = powerbi.extensibility.utils.filter.FilterManager;
 
+enum SearchMode {
+  Contains = "Contains",
+  StartsWith = "StartsWith",
+  Equals = "Is"
+}
+
 declare var require: any;
 const models: any = require("powerbi-models");
 window["powerbi-models"] = models;
@@ -39,6 +45,7 @@ module powerbi.extensibility.visual {
         private clearButton: HTMLButtonElement;
         private column: powerbi.DataViewMetadataColumn;
         private host: powerbi.extensibility.visual.IVisualHost;
+        private searchMode: SearchMode;
 
 
         constructor(options: VisualConstructorOptions) {
@@ -66,6 +73,21 @@ module powerbi.extensibility.visual {
             this.host = options.host;
         }
 
+        public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
+          let objectName = options.objectName;
+          let objectEnumeration = [];
+          if (objectName == 'search') {
+            objectEnumeration.push({
+                objectName,
+                properties: {
+                    searchMode: this.searchMode,
+                },
+                selector: null
+            });
+          }
+          return objectEnumeration;
+        }
+
         /** 
          * Perfom search/filtering in a column
          * @param {string} text - text to filter on
@@ -85,7 +107,7 @@ module powerbi.extensibility.visual {
                 target,
                 "And",
                 {
-                  operator: "Contains",
+                  operator: this.searchMode || SearchMode.Contains,
                   value: text
                 }
               );
@@ -104,6 +126,8 @@ module powerbi.extensibility.visual {
             const newColumn = metadata && metadata.columns && metadata.columns[0];
             const objectCheck = metadata && metadata.objects;
             const properties = DataViewObjects.getObject(objectCheck, "general") as any || {}; 
+            const searchProps = DataViewObjects.getObject(objectCheck, "search") as any || {}; 
+            this.searchMode = searchProps.searchMode || SearchMode.Contains;
             let searchText = "";
 
             // We had a column, but now it is empty, or it has changed.
