@@ -10,7 +10,7 @@
     "gitHubUrl": "https://github.com/microsoft/PowerBI-visuals-TextFilter"
   },
   "output": "dist/textFilter.pbiviz",
-  "apiVersion": "1.11.0",
+  "apiVersion": "3.4.0",
   "author": {
     "name": "Microsoft",
     "email": "msrvizsupport@microsoft.com"
@@ -18,16 +18,9 @@
   "assets": {
     "icon": "assets/icon.png"
   },
-  "externalJS": [
-    "node_modules/d3/d3.min.js",
-    "node_modules/powerbi-models/dist/models.js",
-    "node_modules/powerbi-visuals-utils-dataviewutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-typeutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-svgutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-interactivityutils/lib/index.js"
-  ],
+  "externalJS": null,
   "style": "style/visual.less",
   "capabilities": "capabilities.json",
-  "dependencies": "dependencies.json",
+  "dependencies": null,
   "stringResources": []
 }

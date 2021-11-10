@@ -1,13 +1,24 @@
 {
   "name": "text-filter",
   "version": "1.2.1",
-  "dependencies": {
-    "d3": "3.5.5",
-    "powerbi-visuals-utils-dataviewutils": "1.2.0",
-    "powerbi-visuals-utils-interactivityutils": "^3.2.0"
+  "scripts": {
+    "pbiviz": "pbiviz",
+    "start": "pbiviz start",
+    "package": "pbiviz package",
+    "lint": "tslint -c tslint.json -p tsconfig.json"
   },
   "devDependencies": {
-    "@types/d3": "3.5.38",
-    "powerbi-models": "^0.11.3"
+    "@babel/runtime": "7.6.0",
+    "@babel/runtime-corejs2": "7.6.0",
+    "@types/d3": "^5.16.4",
+    "core-js": "3.2.1",
+    "d3": "^5.16.0",
+    "powerbi-models": "^1.7.0",
+    "powerbi-visuals-api": "^3.4.0",
+    "powerbi-visuals-utils-dataviewutils": "2.2.1",
+    "ts-loader": "6.1.0",
+    "tslint": "^5.18.0",
+    "tslint-microsoft-contrib": "^6.2.0",
+    "typescript": "3.6.3"
   }
 }

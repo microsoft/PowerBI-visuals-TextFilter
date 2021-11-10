@@ -1,49 +1,93 @@
 {
-    "dataRoles": [
-        {
-            "displayName": "Field",
-            "name": "field",
-            "kind": "Grouping"
+  "dataRoles": [
+    {
+      "displayName": "Field",
+      "name": "field",
+      "kind": "Grouping"
+    }
+  ],
+  "objects": {
+    "general": {
+      "displayName": "General",
+      "properties": {
+        "filter": {
+          "type": {
+            "filter": true
+          }
+        },
+        "searchText": {
+          "type": {
+            "text": true
+          }
         }
-    ],
-    "objects": {
-        "general": {
-            "displayName": "General",
-            "properties": {
-              "filter": {
-                "type": {
-                  "filter": true
-                }
-              },
-              "searchText": {
-                "type": {
-                  "text": true
-                }
-              }
-            }
-        }
+      }
     },
-    "dataViewMappings": [
-        {
-            "conditions": [
-                {
-                    "field": {
-                        "max": 1
-                    }
-                }
-            ],
-            "categorical": {
-              "categories": {
-                "for": {
-                  "in": "field"
-                },
-                "dataReductionAlgorithm": {
-                  "top": {
-                    "count": 30000
-                  }
-                }
+    "textBox": {
+      "displayName": "Text Box",
+      "properties": {
+        "fontFamily": {
+          "displayName": "Font Family",
+          "type": {
+            "formatting": {
+              "fontFamily": true
+            }
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "type": {
+            "formatting": {
+              "fontSize": true
+            }
+          }
+        },
+        "placeholderText": {
+          "displayName": "Placeholder Text",
+          "type": {
+            "text": true
+          },
+          "placeHolderText": "Empty"
+        },
+        "border": {
+          "displayName": "Show Border",
+          "type": {
+            "bool": true
+          }
+        },
+        "borderColor": {
+          "displayName": "Border Color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
               }
             }
+          }
         }
-    ]
+      }
+    }
+  },
+  "dataViewMappings": [
+    {
+      "conditions": [
+        {
+          "field": {
+            "max": 1
+          }
+        }
+      ],
+      "categorical": {
+        "categories": {
+          "for": {
+            "in": "field"
+          },
+          "dataReductionAlgorithm": {
+            "top": {
+              "count": 30000
+            }
+          }
+        }
+      }
+    }
+  ]
 }
