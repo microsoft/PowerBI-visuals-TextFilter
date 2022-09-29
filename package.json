@@ -12,7 +12,7 @@
     "@babel/runtime-corejs2": "7.6.0",
     "@types/d3": "^5.16.4",
     "core-js": "3.2.1",
-    "d3": "^5.16.0",
+    "d3": "^7.6.1",
     "powerbi-models": "^1.7.0",
     "powerbi-visuals-api": "^3.4.0",
     "powerbi-visuals-utils-dataviewutils": "2.2.1",
