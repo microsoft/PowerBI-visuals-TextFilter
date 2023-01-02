@@ -16,7 +16,7 @@
     "powerbi-models": "^1.7.0",
     "powerbi-visuals-api": "^3.4.0",
     "powerbi-visuals-utils-dataviewutils": "2.2.1",
-    "ts-loader": "6.1.0",
+    "ts-loader": "9.4.2",
     "tslint": "^5.18.0",
     "tslint-microsoft-contrib": "^6.2.0",
     "typescript": "3.6.3"
