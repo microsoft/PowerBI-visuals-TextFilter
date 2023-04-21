@@ -91,5 +91,6 @@
     }
   ],
   "privileges": [],
-  "supportsSynchronizingFilterState": true  
+  "supportsSynchronizingFilterState": true,
+  "supportsKeyboardFocus": true
 }

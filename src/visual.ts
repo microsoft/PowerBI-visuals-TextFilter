@@ -69,7 +69,9 @@ export class Visual implements IVisual {
       .append("input")
       .attr("aria-label", "Enter your search")
       .attr("type", "text")
-      .attr("name", "search-field");
+      .attr("name", "search-field")
+      .attr("autofocus", true)
+      .attr("tabindex", 0);
     this.searchButton = this.searchUi
       .append("button")
       .classed("c-glyph search-button", true)
