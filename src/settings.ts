@@ -24,6 +24,43 @@
  *  THE SOFTWARE.
  */
 
+import {formattingSettings } from "powerbi-visuals-utils-formattingmodel";
+
+
+import FormattingSettingsCard = formattingSettings.Card;
+import FormattingSettingsSlice = formattingSettings.Slice;
+import FormattingSettingsModel = formattingSettings.Model;
+
+
+
+export class GeneralSettings extends FormattingSettingsCard{
+    private minFontSize: number = 8;
+    private defaultFontSize: number = 11;
+
+    public font = new formattingSettings.FontControl({
+        name: "font",
+        displayNameKey: "Visual_Font",
+        fontFamily: new formattingSettings.FontPicker({
+            name: "fontFamily",
+            displayNameKey: "Visual_Font_Family",
+            value: "Segoe UI, wf_segoe-ui_normal, helvetica, arial, sans-serif"
+        }),
+        fontSize: new formattingSettings.NumUpDown({
+            name: "fontSize",
+            displayNameKey: "Visual_Font_Size",
+            value: this.defaultFontSize, 
+            options: {
+                minValue: {
+                    type: powerbi.visuals.ValidatorType.Min,
+                    value: this.minFontSize,
+                }
+            }
+        })
+    });
+}
+
+
+
 import { dataViewObjectsParser } from "powerbi-visuals-utils-dataviewutils";
 import DataViewObjectsParser = dataViewObjectsParser.DataViewObjectsParser;
 

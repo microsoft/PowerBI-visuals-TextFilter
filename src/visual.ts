@@ -41,10 +41,28 @@ import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
 import * as d3 from "d3";
 import { TextBoxSettings, VisualSettings } from "./settings";
 
+
+import { FormattingSettingsService, formattingSettings } from "powerbi-visuals-utils-formattingmodel";
+
+
+import FormattingSettingsCard = formattingSettings.Card;
+import FormattingSettingsSlice = formattingSettings.Slice;
+import FormattingSettingsModel = formattingSettings.Model;
+import { Card } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
+
+
 const pxToPt = 0.75,
-      fontPxAdjSml = 20,
-      fontPxAdjStd = 24,
-      fontPxAdjLrg = 26;
+  fontPxAdjSml = 20,
+  fontPxAdjStd = 24,
+  fontPxAdjLrg = 26;
+
+class Settings extends Card {
+
+  name: string = "colorSelector";
+  displayName: string = "Data Colors";
+  slices = [];
+
+}
 
 export class Visual implements IVisual {
 
@@ -57,6 +75,7 @@ export class Visual implements IVisual {
   private host: powerbi.extensibility.visual.IVisualHost;
   private settings: VisualSettings;
   private events: IVisualEventService;
+  private formattingSettingsService: FormattingSettingsService;
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -102,16 +121,29 @@ export class Visual implements IVisual {
         const
           mouseEvent: MouseEvent = d3.event,
           selectionManager = options.host.createSelectionManager();
-          selectionManager.showContextMenu({}, {
-            x: mouseEvent.clientX,
-            y: mouseEvent.clientY
+        selectionManager.showContextMenu({}, {
+          x: mouseEvent.clientX,
+          y: mouseEvent.clientY
         });
         mouseEvent.preventDefault();
       });
+
+    this.formattingSettingsService = new FormattingSettingsService();
+
     this.host = options.host;
   }
 
+  // // powerbi.visuals.FormattingModel is incompatible with 
+  // // import FormattingSettingsModel = formattingSettings.Model;
+  // public getFormattingModel(): powerbi.visuals.FormattingModel {
+  //   debugger;
+  //   return {
+  //     cards: [new Settings()]
+  //   }
+  // }
+
   public update(options: VisualUpdateOptions) {
+    debugger;
     this.events.renderingStarted(options);
     this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
     const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
@@ -119,9 +151,15 @@ export class Visual implements IVisual {
     const objectCheck = metadata && metadata.objects;
     const properties = <any>dataViewObjects.getObject(objectCheck, "general") || {};
     let searchText = "";
-
+    debugger;
     this.updateUiSizing();
 
+
+    if ((options.type & 63) === 0) {
+
+      this.events.renderingFinished(options);
+      return;
+    }
     // We had a column, but now it is empty, or it has changed.
     if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
       this.performSearch("");
@@ -211,18 +249,19 @@ export class Visual implements IVisual {
    */
   public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] | VisualObjectInstanceEnumerationObject {
     let objects = <VisualObjectInstanceEnumerationObject>
-                VisualSettings.enumerateObjectInstances(
-                    this.settings || VisualSettings.getDefault(),
-                    options
-                );
+      VisualSettings.enumerateObjectInstances(
+        this.settings || VisualSettings.getDefault(),
+        options
+      );
     switch (options.objectName) {
       case 'textBox': {
-          if (!this.settings.textBox.border) {
-            delete objects.instances[0].properties.borderColor;
-          }
-          break;
+        if (!this.settings.textBox.border) {
+          delete objects.instances[0].properties.borderColor;
+        }
+        break;
       }
     }
+    debugger;
     return objects;
   }
 }
