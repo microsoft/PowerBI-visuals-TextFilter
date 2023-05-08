@@ -23,7 +23,6 @@
       }
     },
     "textBox": {
-      "displayName": "Text Box",
       "properties": {
         "fontFamily": {
           "displayName": "Font Family",

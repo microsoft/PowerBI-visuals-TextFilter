@@ -48,7 +48,6 @@ import { FormattingSettingsService, formattingSettings } from "powerbi-visuals-u
 import FormattingSettingsCard = formattingSettings.Card;
 import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
-import { Card } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
 
 
 const pxToPt = 0.75,
@@ -56,13 +55,6 @@ const pxToPt = 0.75,
   fontPxAdjStd = 24,
   fontPxAdjLrg = 26;
 
-class Settings extends Card {
-
-  name: string = "colorSelector";
-  displayName: string = "Data Colors";
-  slices = [];
-
-}
 
 export class Visual implements IVisual {
 
@@ -135,12 +127,11 @@ export class Visual implements IVisual {
 
   // // powerbi.visuals.FormattingModel is incompatible with 
   // // import FormattingSettingsModel = formattingSettings.Model;
-  // public getFormattingModel(): powerbi.visuals.FormattingModel {
-  //   debugger;
-  //   return {
-  //     cards: [new Settings()]
-  //   }
-  // }
+  public getFormattingModel(): formattingSettings.Model {
+    
+    
+    cards: []
+  }
 
   public update(options: VisualUpdateOptions) {
     debugger;
@@ -242,26 +233,4 @@ export class Visual implements IVisual {
     return <VisualSettings>VisualSettings.parse(dataView);
   }
 
-  /**
-   * This function gets called for each of the objects defined in the capabilities files and allows you to select which of the
-   * objects and properties you want to expose to the users in the property pane.
-   *
-   */
-  public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] | VisualObjectInstanceEnumerationObject {
-    let objects = <VisualObjectInstanceEnumerationObject>
-      VisualSettings.enumerateObjectInstances(
-        this.settings || VisualSettings.getDefault(),
-        options
-      );
-    switch (options.objectName) {
-      case 'textBox': {
-        if (!this.settings.textBox.border) {
-          delete objects.instances[0].properties.borderColor;
-        }
-        break;
-      }
-    }
-    debugger;
-    return objects;
-  }
 }
