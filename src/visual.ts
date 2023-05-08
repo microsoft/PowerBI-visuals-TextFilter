@@ -79,7 +79,8 @@ export class Visual implements IVisual {
       .attr("type", "text")
       .attr("name", "search-field")
       .attr("autofocus", true)
-      .attr("tabindex", 0);
+      .attr("tabindex", 0)
+      .classed("accessibility-compliant", true);
     this.searchButton = this.searchUi
       .append("button")
       .classed("c-glyph search-button", true)
