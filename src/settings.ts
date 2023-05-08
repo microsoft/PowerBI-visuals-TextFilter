@@ -24,31 +24,50 @@
  *  THE SOFTWARE.
  */
 
-import {formattingSettings } from "powerbi-visuals-utils-formattingmodel";
+
+import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, TextInput, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
+
+export class TextFilterSettingsModel extends Model {
+    textBox = new TextBoxSettingsCard();
+    cards: Card[] = [this.textBox];
+}
 
 
-import FormattingSettingsCard = formattingSettings.Card;
-import FormattingSettingsSlice = formattingSettings.Slice;
-import FormattingSettingsModel = formattingSettings.Model;
+
+class TextBoxSettingsCard extends Card {
+
+    name: string = "textBox";
+    displayName?: string = "Text Box"
+    placeholderText: string = "Search"
 
 
-
-export class GeneralSettings extends FormattingSettingsCard{
     private minFontSize: number = 8;
     private defaultFontSize: number = 11;
 
-    public font = new formattingSettings.FontControl({
+    enableBorder = new ToggleSwitch({
+        name: "border",
+        displayName: "Show Border",
+        value: true
+    });
+
+    borderColor = new ColorPicker({
+        name: "borderColor",
+        displayName: "Border Color",
+        value: { value: "#000000" }
+    });
+
+    font = new FontControl({
         name: "font",
         displayNameKey: "Visual_Font",
-        fontFamily: new formattingSettings.FontPicker({
+        fontFamily: new FontPicker({
             name: "fontFamily",
             displayNameKey: "Visual_Font_Family",
             value: "Segoe UI, wf_segoe-ui_normal, helvetica, arial, sans-serif"
         }),
-        fontSize: new formattingSettings.NumUpDown({
+        fontSize: new NumUpDown({
             name: "fontSize",
             displayNameKey: "Visual_Font_Size",
-            value: this.defaultFontSize, 
+            value: this.defaultFontSize,
             options: {
                 minValue: {
                     type: powerbi.visuals.ValidatorType.Min,
@@ -57,6 +76,8 @@ export class GeneralSettings extends FormattingSettingsCard{
             }
         })
     });
+
+    slices: Slice[] = [this.font, this.enableBorder, this.borderColor];
 }
 
 
@@ -64,30 +85,30 @@ export class GeneralSettings extends FormattingSettingsCard{
 import { dataViewObjectsParser } from "powerbi-visuals-utils-dataviewutils";
 import DataViewObjectsParser = dataViewObjectsParser.DataViewObjectsParser;
 
-/**
- * @class VisualSettings
- * Manages all custom properties for the visual
- * 
- * @property { TextBoxSettings } textBox    - Properties for text box display
- */
-export class VisualSettings extends DataViewObjectsParser {
-    public textBox: TextBoxSettings = new TextBoxSettings();
-}
+// /**
+//  * @class VisualSettings
+//  * Manages all custom properties for the visual
+//  * 
+//  * @property { TextBoxSettings } textBox    - Properties for text box display
+//  */
+// export class VisualSettings extends DataViewObjectsParser {
+//     public textBox: TextBoxSettings = new TextBoxSettings();
+// }
 
-/**
- * @class TextBoxSettings
- * Manages properties for the text box used for searching
- * 
- * @property {string}   fontFamily      - Font family for filter
- * @property {number}   fontSize        - Font size for filter
- * @property {string}   placeholderText - Placeholder text message in box
- * @property {boolean}  border          - Show box border
- * @property {string}   borderColor     - Border color (if shown)
- */
-export class TextBoxSettings {
-    public fontFamily = '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif';
-    public fontSize = 11;
-    public placeholderText = "Search";
-    public border = true;
-    public borderColor = "#000000";
-}
+// /**
+//  * @class TextBoxSettings
+//  * Manages properties for the text box used for searching
+//  * 
+//  * @property {string}   fontFamily      - Font family for filter
+//  * @property {number}   fontSize        - Font size for filter
+//  * @property {string}   placeholderText - Placeholder text message in box
+//  * @property {boolean}  border          - Show box border
+//  * @property {string}   borderColor     - Border color (if shown)
+//  */
+// export class TextBoxSettings {
+//     public fontFamily = '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif';
+//     public fontSize = 11;
+//     public placeholderText = "Search";
+//     public border = true;
+//     public borderColor = "#000000";
+// }

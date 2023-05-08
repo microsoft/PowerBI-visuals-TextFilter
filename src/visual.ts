@@ -39,15 +39,11 @@ import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
 import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
 import * as d3 from "d3";
-import { TextBoxSettings, VisualSettings } from "./settings";
+// import { TextBoxSettings, TextFilterSettingsModel, VisualSettings } from "./settings";
+import { TextFilterSettingsModel } from "./settings";
 
 
-import { FormattingSettingsService, formattingSettings } from "powerbi-visuals-utils-formattingmodel";
-
-
-import FormattingSettingsCard = formattingSettings.Card;
-import FormattingSettingsSlice = formattingSettings.Slice;
-import FormattingSettingsModel = formattingSettings.Model;
+import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 
 
 const pxToPt = 0.75,
@@ -65,9 +61,11 @@ export class Visual implements IVisual {
   private clearButton: d3.Selection<HTMLButtonElement, any, any, any>;
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
-  private settings: VisualSettings;
+  // private settings: VisualSettings;
   private events: IVisualEventService;
   private formattingSettingsService: FormattingSettingsService;
+  private formattingSettings: TextFilterSettingsModel;
+
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -98,7 +96,7 @@ export class Visual implements IVisual {
       .append("span")
       .classed("x-screen-reader", true)
       .text("Clear");
-    this.updateUiSizing();
+    // this.updateUiSizing();
     this.searchBox.on("keydown", (e) => {
       if (d3.event.keyCode === 13) {
         this.performSearch(this.searchBox.property("value"));
@@ -127,16 +125,15 @@ export class Visual implements IVisual {
 
   // // powerbi.visuals.FormattingModel is incompatible with 
   // // import FormattingSettingsModel = formattingSettings.Model;
-  public getFormattingModel(): formattingSettings.Model {
-    
-    
-    cards: []
-  }
+  public getFormattingModel(): powerbi.visuals.FormattingModel {
+    const model = this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+    debugger;
+    return model;
+}
 
   public update(options: VisualUpdateOptions) {
-    debugger;
     this.events.renderingStarted(options);
-    this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
+    this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews);
     const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
     const newColumn = metadata && metadata.columns && metadata.columns[0];
     const objectCheck = metadata && metadata.objects;
@@ -145,12 +142,6 @@ export class Visual implements IVisual {
     debugger;
     this.updateUiSizing();
 
-
-    if ((options.type & 63) === 0) {
-
-      this.events.renderingFinished(options);
-      return;
-    }
     // We had a column, but now it is empty, or it has changed.
     if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
       this.performSearch("");
@@ -173,22 +164,23 @@ export class Visual implements IVisual {
    * Ensures that the UI is sized according to the specified properties (or defaults, if not overridden).
    */
   private updateUiSizing() {
+    debugger;
     const
-      textBox: TextBoxSettings = this.settings?.textBox ?? VisualSettings.getDefault()["textBox"],
-      fontSize = textBox.fontSize,
+      textBox = this.formattingSettings?.textBox, // todo default value?
+      fontSize = textBox.font.fontSize.value,
       fontScaleSml = (fontSize / pxToPt) + fontPxAdjSml,
       fontScaleStd = (fontSize / pxToPt) + fontPxAdjStd,
       fontScaleLrg = (fontSize / pxToPt) + fontPxAdjLrg;
     this.searchUi
       .style('height', `${fontScaleStd}px`)
       .style('font-size', `${fontSize}pt`)
-      .style('font-family', textBox.fontFamily);
+      .style('font-family', textBox.font.fontFamily.value);
     this.searchBox
       .attr('placeholder', textBox.placeholderText)
       .style('width', `calc(100% - ${fontScaleStd}px)`)
       .style('padding-right', `${fontScaleStd}px`)
-      .style('border-style', textBox.border && 'solid' || 'none')
-      .style('border-color', textBox.borderColor);
+      .style('border-style', textBox.enableBorder.value && 'solid' || 'none')
+      .style('border-color', textBox.borderColor.value.value);
     this.searchButton
       .style('right', `${fontScaleLrg}px`)
       .style('width', `${fontScaleSml}px`)
@@ -228,9 +220,4 @@ export class Visual implements IVisual {
     }
     this.searchBox.property("value", text);
   }
-
-  private static parseSettings(dataView: DataView): VisualSettings {
-    return <VisualSettings>VisualSettings.parse(dataView);
-  }
-
 }

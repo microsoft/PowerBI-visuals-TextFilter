@@ -25,7 +25,6 @@
     "textBox": {
       "properties": {
         "fontFamily": {
-          "displayName": "Font Family",
           "type": {
             "formatting": {
               "fontFamily": true
@@ -33,28 +32,18 @@
           }
         },
         "fontSize": {
-          "displayName": "Font Size",
           "type": {
             "formatting": {
               "fontSize": true
             }
           }
         },
-        "placeholderText": {
-          "displayName": "Placeholder Text",
-          "type": {
-            "text": true
-          },
-          "placeHolderText": "Empty"
-        },
         "border": {
-          "displayName": "Show Border",
           "type": {
             "bool": true
           }
         },
         "borderColor": {
-          "displayName": "Border Color",
           "type": {
             "fill": {
               "solid": {
