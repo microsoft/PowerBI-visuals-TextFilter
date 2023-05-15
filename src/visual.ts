@@ -128,7 +128,6 @@ export class Visual implements IVisual {
   // // import FormattingSettingsModel = formattingSettings.Model;
   public getFormattingModel(): powerbi.visuals.FormattingModel {
     const model = this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
-    debugger;
     return model;
 }
 
@@ -140,7 +139,6 @@ export class Visual implements IVisual {
     const objectCheck = metadata && metadata.objects;
     const properties = <any>dataViewObjects.getObject(objectCheck, "general") || {};
     let searchText = "";
-    debugger;
     this.updateUiSizing();
 
     // We had a column, but now it is empty, or it has changed.
@@ -165,7 +163,6 @@ export class Visual implements IVisual {
    * Ensures that the UI is sized according to the specified properties (or defaults, if not overridden).
    */
   private updateUiSizing() {
-    debugger;
     const
       textBox = this.formattingSettings?.textBox, // todo default value?
       fontSize = textBox.font.fontSize.value,
