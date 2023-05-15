@@ -30,10 +30,6 @@ import powerbi from "powerbi-visuals-api";
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-import VisualObjectInstance = powerbi.VisualObjectInstance;
-import DataView = powerbi.DataView;
-import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
@@ -99,7 +95,7 @@ export class Visual implements IVisual {
       .classed("x-screen-reader", true)
       .text("Clear");
     // this.updateUiSizing();
-    this.searchBox.on("keydown", (event, _data) => {
+    this.searchBox.on("keydown", (event) => {
       if (event.keyCode === 13) {
         this.performSearch(this.searchBox.property("value"));
       }
@@ -109,7 +105,7 @@ export class Visual implements IVisual {
     this.clearButton
       .on("click", () => this.performSearch(""));
     d3Select(this.target)
-      .on("contextmenu", (event, _data) => {
+      .on("contextmenu", (event) => {
         const
           mouseEvent: MouseEvent = event,
           selectionManager = options.host.createSelectionManager();
