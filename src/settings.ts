@@ -25,11 +25,26 @@
  */
 
 
-import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, TextInput, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
+import powerbi from "powerbi-visuals-api";
+import IEnumMember = powerbi.IEnumMember;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+
+import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
 
 export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();
     cards: Card[] = [this.textBox];
+
+    public setLocalizedDisplayName(options: IEnumMember[], localizationManager: ILocalizationManager) {
+        options.forEach(option => {
+            option.displayName = localizationManager.getDisplayName(option.displayName.toString())
+        });
+    }
+
+    // we don't need color picker for border color if the border is disabled
+    public removeBorderColor() {
+        this.textBox.slices = [this.textBox.font, this.textBox.enableBorder]
+    }
 }
 
 

@@ -38,8 +38,9 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
 import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
-import * as d3 from "d3";
-// import { TextBoxSettings, TextFilterSettingsModel, VisualSettings } from "./settings";
+
+import { Selection as d3Selection, select as d3Select } from "d3-selection";
+
 import { TextFilterSettingsModel } from "./settings";
 
 
@@ -55,10 +56,10 @@ const pxToPt = 0.75,
 export class Visual implements IVisual {
 
   private target: HTMLElement;
-  private searchUi: d3.Selection<HTMLDivElement, any, any, any>;
-  private searchBox: d3.Selection<HTMLInputElement, any, any, any>;
-  private searchButton: d3.Selection<HTMLButtonElement, any, any, any>;
-  private clearButton: d3.Selection<HTMLButtonElement, any, any, any>;
+  private searchUi: d3Selection<HTMLDivElement, any, any, any>;
+  private searchBox: d3Selection<HTMLInputElement, any, any, any>;
+  private searchButton: d3Selection<HTMLButtonElement, any, any, any>;
+  private clearButton: d3Selection<HTMLButtonElement, any, any, any>;
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
   // private settings: VisualSettings;
@@ -70,7 +71,7 @@ export class Visual implements IVisual {
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
     this.target = options.element;
-    this.searchUi = d3.select(this.target)
+    this.searchUi = d3Select(this.target)
       .append("div")
       .classed("text-filter-search", true);
     this.searchBox = this.searchUi
@@ -98,8 +99,8 @@ export class Visual implements IVisual {
       .classed("x-screen-reader", true)
       .text("Clear");
     // this.updateUiSizing();
-    this.searchBox.on("keydown", (e) => {
-      if (d3.event.keyCode === 13) {
+    this.searchBox.on("keydown", (event, _data) => {
+      if (event.keyCode === 13) {
         this.performSearch(this.searchBox.property("value"));
       }
     });
@@ -107,10 +108,10 @@ export class Visual implements IVisual {
       .on("click", () => this.performSearch(this.searchBox.property("value")));
     this.clearButton
       .on("click", () => this.performSearch(""));
-    d3.select(this.target)
-      .on("contextmenu", () => {
+    d3Select(this.target)
+      .on("contextmenu", (event, _data) => {
         const
-          mouseEvent: MouseEvent = d3.event,
+          mouseEvent: MouseEvent = event,
           selectionManager = options.host.createSelectionManager();
         selectionManager.showContextMenu({}, {
           x: mouseEvent.clientX,
@@ -124,9 +125,11 @@ export class Visual implements IVisual {
     this.host = options.host;
   }
 
-  // // powerbi.visuals.FormattingModel is incompatible with 
-  // // import FormattingSettingsModel = formattingSettings.Model;
   public getFormattingModel(): powerbi.visuals.FormattingModel {
+    // removes border color
+    if (this.formattingSettings?.textBox.enableBorder.value === false){
+      this.formattingSettings.removeBorderColor();
+    }
     const model = this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
     return model;
 }
