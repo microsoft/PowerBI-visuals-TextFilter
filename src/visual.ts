@@ -31,6 +31,7 @@ import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructor
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
 import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
@@ -39,9 +40,7 @@ import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
 import { TextFilterSettingsModel } from "./settings";
 
-
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
-
 
 const pxToPt = 0.75,
   fontPxAdjSml = 20,
@@ -62,7 +61,7 @@ export class Visual implements IVisual {
   private events: IVisualEventService;
   private formattingSettingsService: FormattingSettingsService;
   private formattingSettings: TextFilterSettingsModel;
-
+  private localizationManager: ILocalizationManager;
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -115,20 +114,21 @@ export class Visual implements IVisual {
         });
         mouseEvent.preventDefault();
       });
-
-    this.formattingSettingsService = new FormattingSettingsService();
+  
+    this.localizationManager = options.host.createLocalizationManager()
+    this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
 
     this.host = options.host;
   }
 
   public getFormattingModel(): powerbi.visuals.FormattingModel {
     // removes border color
-    if (this.formattingSettings?.textBox.enableBorder.value === false){
+    if (this.formattingSettings?.textBox.enableBorder.value === false) {
       this.formattingSettings.removeBorderColor();
     }
     const model = this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
     return model;
-}
+  }
 
   public update(options: VisualUpdateOptions) {
     this.events.renderingStarted(options);
@@ -173,7 +173,7 @@ export class Visual implements IVisual {
       .style('font-size', `${fontSize}pt`)
       .style('font-family', textBox.font.fontFamily.value);
     this.searchBox
-      .attr('placeholder', textBox.placeholderText)
+      .attr('placeholder', this.localizationManager.getDisplayName(textBox.placeholderTextKey))
       .style('width', `calc(100% - ${fontScaleStd}px)`)
       .style('padding-right', `${fontScaleStd}px`)
       .style('border-style', textBox.enableBorder.value && 'solid' || 'none')

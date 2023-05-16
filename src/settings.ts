@@ -26,20 +26,12 @@
 
 
 import powerbi from "powerbi-visuals-api";
-import IEnumMember = powerbi.IEnumMember;
-import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 
 import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
 
 export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();
     cards: Card[] = [this.textBox];
-
-    public setLocalizedDisplayName(options: IEnumMember[], localizationManager: ILocalizationManager) {
-        options.forEach(option => {
-            option.displayName = localizationManager.getDisplayName(option.displayName.toString())
-        });
-    }
 
     // we don't need color picker for border color if the border is disabled
     public removeBorderColor() {
@@ -52,8 +44,8 @@ export class TextFilterSettingsModel extends Model {
 class TextBoxSettingsCard extends Card {
 
     name: string = "textBox";
-    displayName?: string = "Text Box"
-    placeholderText: string = "Search"
+    displayNameKey?: string = "Visual_Textbox_Settings";
+    placeholderTextKey: string = "Visual_Input_Placeholder"
 
 
     private minFontSize: number = 8;
@@ -61,13 +53,13 @@ class TextBoxSettingsCard extends Card {
 
     enableBorder = new ToggleSwitch({
         name: "border",
-        displayName: "Show Border",
+        displayNameKey: "Visual_Enable_Border",
         value: true
     });
 
     borderColor = new ColorPicker({
         name: "borderColor",
-        displayName: "Border Color",
+        displayNameKey: "Visual_Border_color",
         value: { value: "#000000" }
     });
 
