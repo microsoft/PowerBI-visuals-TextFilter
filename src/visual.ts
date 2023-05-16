@@ -127,6 +127,12 @@ export class Visual implements IVisual {
       this.formattingSettings.removeBorderColor();
     }
     const model = this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+
+    // hotfix for composite slice
+    const buggedFontControl = (<any>model.cards[0]).groups[0].slices.find(slice => !slice.displayName && slice.control.type === "FontControl")
+    if (buggedFontControl){
+      buggedFontControl.displayName = this.localizationManager.getDisplayName("Visual_Font");
+    }
     return model;
   }
 
