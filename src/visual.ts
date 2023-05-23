@@ -171,9 +171,9 @@ export class Visual implements IVisual {
     const
       textBox = this.formattingSettings?.textBox, // todo default value?
       fontSize = textBox.font.fontSize.value,
-      fontScaleSml = (fontSize / pxToPt) + fontPxAdjSml,
-      fontScaleStd = (fontSize / pxToPt) + fontPxAdjStd,
-      fontScaleLrg = (fontSize / pxToPt) + fontPxAdjLrg;
+      fontScaleSml = Math.floor((fontSize / pxToPt) + fontPxAdjSml),
+      fontScaleStd = Math.floor((fontSize / pxToPt) + fontPxAdjStd),
+      fontScaleLrg = Math.floor((fontSize / pxToPt) + fontPxAdjLrg);
     this.searchUi
       .style('height', `${fontScaleStd}px`)
       .style('font-size', `${fontSize}pt`)
