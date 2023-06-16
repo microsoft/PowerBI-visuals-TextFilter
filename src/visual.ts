@@ -57,7 +57,6 @@ export class Visual implements IVisual {
   private clearButton: d3Selection<HTMLButtonElement, any, any, any>;
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
-  // private settings: VisualSettings;
   private events: IVisualEventService;
   private formattingSettingsService: FormattingSettingsService;
   private formattingSettings: TextFilterSettingsModel;
@@ -169,7 +168,7 @@ export class Visual implements IVisual {
    */
   private updateUiSizing() {
     const
-      textBox = this.formattingSettings?.textBox, // todo default value?
+      textBox = this.formattingSettings?.textBox,
       fontSize = textBox.font.fontSize.value,
       fontScaleSml = Math.floor((fontSize / pxToPt) + fontPxAdjSml),
       fontScaleStd = Math.floor((fontSize / pxToPt) + fontPxAdjStd),
