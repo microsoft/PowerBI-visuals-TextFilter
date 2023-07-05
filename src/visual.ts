@@ -150,10 +150,8 @@ export class Visual implements IVisual {
       this.performSearch("");
 
       // Well, it hasn't changed, then lets try to load the existing search text.
-    } else if (properties.filter) {
-      if (options.jsonFilters && options.jsonFilters.length > 0) {
+    } else if (options.jsonFilters && options.jsonFilters.length > 0) {
         searchText = `${(<IAdvancedFilter[]>options.jsonFilters).map((f) => f.conditions.map((c) => c.value)).join(" ")}`;
-      }
     }
 
     this.searchBox.property("value", searchText);
