@@ -1,6 +1,6 @@
 {
   "name": "text-filter",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "scripts": {
     "pbiviz": "pbiviz",
     "start": "pbiviz start",
@@ -18,7 +18,7 @@
     "powerbi-visuals-api": "~5.3.0",
     "powerbi-visuals-tools": "^4.3.2",
     "powerbi-visuals-utils-dataviewutils": "^6.0.1",
-    "powerbi-visuals-utils-formattingmodel": "^5.0.0",
+    "powerbi-visuals-utils-formattingmodel": "^5.0.1",
     "ts-loader": "6.1.0",
     "typescript": "^5.0.4"
   },
