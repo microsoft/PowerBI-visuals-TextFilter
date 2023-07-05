@@ -27,18 +27,36 @@
 
 import powerbi from "powerbi-visuals-api";
 
-import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
+import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch, ItemDropdown } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
 
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+
+import IEnumMember = powerbi.IEnumMember;
+const filterTypeOptionsOptions: IEnumMember[] = [
+    { displayName: "Visual_FilterOperator_Contains", value: "Contains" },
+    { displayName: "Visual_FilterOperator_Equals", value: "Is" },
+    { displayName: "Visual_FilterOperator_StartsWith", value: "StartsWith" },
+]
 export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();
-    cards: Card[] = [this.textBox];
+    filterMode = new FilterModeSettingsCard();
+    cards: Card[] = [this.textBox, this.filterMode];
 
     // we don't need color picker for border color if the border is disabled
     public removeBorderColor() {
         this.textBox.slices = [this.textBox.font, this.textBox.enableBorder]
     }
-}
 
+    public setLocalizedOptions(localizationManager: ILocalizationManager){
+        this.setLocalizedDisplayName(filterTypeOptionsOptions, localizationManager);
+    }
+
+    private setLocalizedDisplayName(options: IEnumMember[], localizationManager: ILocalizationManager) {
+        options.forEach(option => {
+            option.displayName = localizationManager.getDisplayName(option.displayName.toString())
+        });
+    }
+}
 
 
 class TextBoxSettingsCard extends Card {
@@ -87,3 +105,16 @@ class TextBoxSettingsCard extends Card {
     slices: Slice[] = [this.font, this.enableBorder, this.borderColor];
 }
 
+class FilterModeSettingsCard extends Card {
+    name = "filterMode";
+    displayNameKey = "Visual_FilterMode";
+
+    filterOperator = new ItemDropdown({
+        name: "filterOperator",
+        displayNameKey: "Visual_FilterMode",
+        items: filterTypeOptionsOptions,
+        value: filterTypeOptionsOptions[0]
+    });
+
+    slices?: Slice[] = [this.filterOperator];
+}

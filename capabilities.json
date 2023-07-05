@@ -14,11 +14,6 @@
           "type": {
             "filter": true
           }
-        },
-        "searchText": {
-          "type": {
-            "text": true
-          }
         }
       }
     },
@@ -50,6 +45,15 @@
                 "color": true
               }
             }
+          }
+        }
+      }
+    },
+    "filterMode": {
+      "properties": {
+        "filterOperator": {
+          "type": {
+            "text": true
           }
         }
       }

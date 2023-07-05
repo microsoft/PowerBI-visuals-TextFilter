@@ -34,7 +34,7 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
-import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
+import { IAdvancedFilter, AdvancedFilter, AdvancedFilterConditionOperators } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
@@ -47,6 +47,7 @@ const pxToPt = 0.75,
   fontPxAdjStd = 24,
   fontPxAdjLrg = 26;
 
+type FilterMode = Extract<AdvancedFilterConditionOperators, "Contains" | "Is" | "StartsWith">
 
 export class Visual implements IVisual {
 
@@ -61,6 +62,7 @@ export class Visual implements IVisual {
   private formattingSettingsService: FormattingSettingsService;
   private formattingSettings: TextFilterSettingsModel;
   private localizationManager: ILocalizationManager;
+  private currentFilterMode: FilterMode;
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -113,7 +115,7 @@ export class Visual implements IVisual {
         });
         mouseEvent.preventDefault();
       });
-  
+
     this.localizationManager = options.host.createLocalizationManager()
     this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
 
@@ -121,6 +123,10 @@ export class Visual implements IVisual {
   }
 
   public getFormattingModel(): powerbi.visuals.FormattingModel {
+
+    // apply localization to filter type enum
+    this.formattingSettings.setLocalizedOptions(this.localizationManager);
+
     // removes border color
     if (this.formattingSettings?.textBox.enableBorder.value === false) {
       this.formattingSettings.removeBorderColor();
@@ -129,13 +135,14 @@ export class Visual implements IVisual {
 
     // hotfix for composite slice
     const buggedFontControl = (<any>model.cards[0]).groups[0].slices.find(slice => !slice.displayName && slice.control.type === "FontControl")
-    if (buggedFontControl){
+    if (buggedFontControl) {
       buggedFontControl.displayName = this.localizationManager.getDisplayName("Visual_Font");
     }
     return model;
   }
 
   public update(options: VisualUpdateOptions) {
+    debugger;
     this.events.renderingStarted(options);
     this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews);
     const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
@@ -158,7 +165,11 @@ export class Visual implements IVisual {
 
     this.searchBox.property("value", searchText);
     this.column = newColumn;
-
+    // if the filter mode has changed, explicitly applyJsonFilter with the new filter type
+    if (this.currentFilterMode !== this.formattingSettings.filterMode.filterOperator.value.value) {
+      this.currentFilterMode = <FilterMode>this.formattingSettings.filterMode.filterOperator.value.value;
+      this.performSearch(searchText);
+    }
     this.events.renderingFinished(options);
 
   }
@@ -212,7 +223,7 @@ export class Visual implements IVisual {
           target,
           "And",
           {
-            operator: "Contains",
+            operator: this.currentFilterMode,
             value: text
           }
         );

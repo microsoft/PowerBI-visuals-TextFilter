@@ -5,5 +5,9 @@
     "Visual_Border_color": "Border color",
     "Visual_Font_Size": "Text Size",
     "Visual_Font_Family": "Font family",
-    "Visual_Font": "Font"
+    "Visual_Font": "Font",
+    "Visual_FilterMode": "Filter mode",
+    "Visual_FilterOperator_Contains": "Contains",
+    "Visual_FilterOperator_Equals": "Equals",
+    "Visual_FilterOperator_StartsWith": "Starts with"
 }
