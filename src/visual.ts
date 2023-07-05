@@ -34,7 +34,7 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
-import { IAdvancedFilter, AdvancedFilter, AdvancedFilterConditionOperators } from "powerbi-models";
+import { BasicFilter, IAdvancedFilter, AdvancedFilter, AdvancedFilterConditionOperators } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
@@ -141,27 +141,42 @@ export class Visual implements IVisual {
     return model;
   }
 
+  private static parseSearchText(jsonFilters: any): string {
+    if (jsonFilters?.length < 1) {
+      return "";
+    }
+
+    const jsonFilter = jsonFilters[0];
+    if (jsonFilter.$schema === AdvancedFilter.schemaUrl){
+        return `${(<IAdvancedFilter[]>jsonFilters).map((f) => f.conditions?.map((c) => c.value)).join(" ")}`;
+    }
+    
+    if (jsonFilter.$schema === BasicFilter.schemaUrl){
+        return jsonFilter.values?.length > 0 ? jsonFilter.values[0]: "";
+    }
+
+    return "";
+  }
+
   public update(options: VisualUpdateOptions) {
-    debugger;
+    //debugger;
     this.events.renderingStarted(options);
     this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews);
     const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
     const newColumn = metadata && metadata.columns && metadata.columns[0];
     const objectCheck = metadata && metadata.objects;
     const properties = <any>dataViewObjects.getObject(objectCheck, "general") || {};
-    let searchText = "";
     this.updateUiSizing();
 
     // We had a column, but now it is empty, or it has changed.
     if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
       this.performSearch("");
 
+      //TODO: add return;
       // Well, it hasn't changed, then lets try to load the existing search text.
-    } else if (properties.filter) {
-      if (options.jsonFilters && options.jsonFilters.length > 0) {
-        searchText = `${(<IAdvancedFilter[]>options.jsonFilters).map((f) => f.conditions.map((c) => c.value)).join(" ")}`;
-      }
     }
+
+    let searchText = Visual.parseSearchText(options.jsonFilters);
 
     this.searchBox.property("value", searchText);
     this.column = newColumn;
@@ -217,7 +232,7 @@ export class Visual implements IVisual {
       };
 
       let filter: any = null;
-      let action = FilterAction.remove;
+      let action = FilterAction.merge;
       if (!isBlank) {
         filter = new AdvancedFilter(
           target,
@@ -227,7 +242,6 @@ export class Visual implements IVisual {
             value: text
           }
         );
-        action = FilterAction.merge;
       }
       this.host.applyJsonFilter(filter, "general", "filter", action);
     }
