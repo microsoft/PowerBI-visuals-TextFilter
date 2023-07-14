@@ -171,9 +171,7 @@ export class Visual implements IVisual {
     // We had a column, but now it is empty, or it has changed.
     if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
       this.performSearch("");
-
-      //TODO: add return;
-      // Well, it hasn't changed, then lets try to load the existing search text.
+      return;
     }
 
     let searchText = Visual.parseSearchText(options.jsonFilters);
