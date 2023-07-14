@@ -32,7 +32,6 @@ import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
-import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import FilterAction = powerbi.FilterAction;
 import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
 
@@ -94,7 +93,7 @@ export class Visual implements IVisual {
       .text("Clear");
     // this.updateUiSizing();
     this.searchBox.on("keydown", (event) => {
-      if (event.keyCode === 13) {
+      if (event.key === "Enter") {
         this.performSearch(this.searchBox.property("value"));
       }
     });
@@ -135,8 +134,6 @@ export class Visual implements IVisual {
     this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews);
     const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
     const newColumn = metadata && metadata.columns && metadata.columns[0];
-    const objectCheck = metadata && metadata.objects;
-    const properties = <any>dataViewObjects.getObject(objectCheck, "general") || {};
     let searchText = "";
     this.updateUiSizing();
 
@@ -145,7 +142,7 @@ export class Visual implements IVisual {
       this.performSearch("");
 
       // Well, it hasn't changed, then lets try to load the existing search text.
-    } else if (options.jsonFilters && options.jsonFilters.length > 0) {
+    } else if (options?.jsonFilters?.length > 0) {
         searchText = `${(<IAdvancedFilter[]>options.jsonFilters).map((f) => f.conditions.map((c) => c.value)).join(" ")}`;
     }
 
