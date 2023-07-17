@@ -24,33 +24,66 @@
  *  THE SOFTWARE.
  */
 
-import { dataViewObjectsParser } from "powerbi-visuals-utils-dataviewutils";
-import DataViewObjectsParser = dataViewObjectsParser.DataViewObjectsParser;
 
-/**
- * @class VisualSettings
- * Manages all custom properties for the visual
- * 
- * @property { TextBoxSettings } textBox    - Properties for text box display
- */
-export class VisualSettings extends DataViewObjectsParser {
-    public textBox: TextBoxSettings = new TextBoxSettings();
+import powerbi from "powerbi-visuals-api";
+
+import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
+
+export class TextFilterSettingsModel extends Model {
+    textBox = new TextBoxSettingsCard();
+    cards: Card[] = [this.textBox];
+
+    // we don't need color picker for border color if the border is disabled
+    public removeBorderColor() {
+        this.textBox.slices = [this.textBox.font, this.textBox.enableBorder]
+    }
 }
 
-/**
- * @class TextBoxSettings
- * Manages properties for the text box used for searching
- * 
- * @property {string}   fontFamily      - Font family for filter
- * @property {number}   fontSize        - Font size for filter
- * @property {string}   placeholderText - Placeholder text message in box
- * @property {boolean}  border          - Show box border
- * @property {string}   borderColor     - Border color (if shown)
- */
-export class TextBoxSettings {
-    public fontFamily = '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif';
-    public fontSize = 11;
-    public placeholderText = "Search";
-    public border = true;
-    public borderColor = "#000000";
+
+
+class TextBoxSettingsCard extends Card {
+
+    name: string = "textBox";
+    displayNameKey?: string = "Visual_Textbox_Settings";
+    placeholderTextKey: string = "Visual_Input_Placeholder"
+
+
+    private minFontSize: number = 8;
+    private defaultFontSize: number = 11;
+
+    enableBorder = new ToggleSwitch({
+        name: "border",
+        displayNameKey: "Visual_Enable_Border",
+        value: true
+    });
+
+    borderColor = new ColorPicker({
+        name: "borderColor",
+        displayNameKey: "Visual_Border_color",
+        value: { value: "#000000" }
+    });
+
+    font = new FontControl({
+        name: "font",
+        displayNameKey: "Visual_Font",
+        fontFamily: new FontPicker({
+            name: "fontFamily",
+            displayNameKey: "Visual_Font_Family",
+            value: "Segoe UI, wf_segoe-ui_normal, helvetica, arial, sans-serif"
+        }),
+        fontSize: new NumUpDown({
+            name: "fontSize",
+            displayNameKey: "Visual_Font_Size",
+            value: this.defaultFontSize,
+            options: {
+                minValue: {
+                    type: powerbi.visuals.ValidatorType.Min,
+                    value: this.minFontSize,
+                }
+            }
+        })
+    });
+
+    slices: Slice[] = [this.font, this.enableBorder, this.borderColor];
 }
+
