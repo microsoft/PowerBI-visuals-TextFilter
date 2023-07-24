@@ -1,11 +1,13 @@
 div {
     font-weight: normal;
+
     em {
         background: yellow;
         padding: 5px;
-        
+
     }
 }
+
 .text-filter-search {
     position: relative;
     min-width: 92px;
@@ -17,7 +19,8 @@ div {
     line-height: normal;
 }
 
-.text-filter-search button, .text-filter-search input {
+.text-filter-search button,
+.text-filter-search input {
     color: inherit;
     font: inherit;
     margin: 0;
@@ -29,7 +32,8 @@ div {
     -moz-appearance: none;
 }
 
-.text-filter-search input[type="text"], .text-filter-search button.search-button {
+.text-filter-search input[type="text"],
+.text-filter-search button.search-button {
     float: left;
     height: 100%;
     outline: 0;
@@ -40,7 +44,7 @@ div {
     box-sizing: border-box;
     height: 100%;
     padding: 7px 10px;
-    border: 1px solid rgba(0,0,0,.6);
+    border: 1px solid rgba(0, 0, 0, .6);
 }
 
 .text-filter-search button {
@@ -51,7 +55,7 @@ div {
 .text-filter-search .x-screen-reader {
     position: absolute !important;
     overflow: hidden !important;
-    clip: rect(1px,1px,1px,1px) !important;
+    clip: rect(1px, 1px, 1px, 1px) !important;
     width: 1px !important;
     height: 1px !important;
     border: 0 !important;
@@ -69,7 +73,7 @@ div {
     top: 0;
     margin: 2px 1px 1px;
     padding: 9px;
-    transition: color .1s,background-color .1s;
+    transition: color .1s, background-color .1s;
     border: 0;
 }
 
@@ -77,16 +81,20 @@ div {
     border: 0;
     background-color: initial;
     display: inline-block;
-    transition: color .1s,background-color .1s;
+    transition: color .1s, background-color .1s;
     outline: none;
 }
 
-.text-filter-search .c-glyph:before, .c-glyph:after {
+.text-filter-search .c-glyph:before,
+.c-glyph:after {
     display: inline-block;
     text-decoration: underline;
 }
 
-.text-filter-search .c-glyph:before, .c-glyph:after, .c-glyph:hover:before, .c-glyph:hover:after {
+.text-filter-search .c-glyph:before,
+.c-glyph:after,
+.c-glyph:hover:before,
+.c-glyph:hover:after {
     text-decoration: none;
 }
 
@@ -113,7 +121,12 @@ div {
     color: #757575;
 }
 
-.accessibility-compliant::-moz-placeholder { /* Mozilla Firefox 19+ */
+.accessibility-compliant::-moz-placeholder {
+    /* Mozilla Firefox 19+ */
     color: #757575;
-    opacity:  1;
- }
+    opacity: 1;
+}
+
+.border-on-focus:focus {
+    border: solid 1px black !important;
+}
