@@ -94,13 +94,6 @@ export class Visual implements IVisual {
       .append("span")
       .classed("x-screen-reader", true)
       .text("Clear");
-    document.addEventListener("keydown", event => {
-      if (event.code === "Tab") {
-        event.preventDefault();
-        this.searchBox.node()?.focus();
-        event.stopPropagation();
-      }
-    })
 
     this.clearButton.on("keydown", event => {
       if (event.key === "Tab"){
