@@ -74,11 +74,13 @@ export class Visual implements IVisual {
       .attr("name", "search-field")
       .attr("autofocus", true)
       .attr("tabindex", 0)
-      .classed("accessibility-compliant", true);
+      .classed("accessibility-compliant", true)
+      .classed("border-on-focus", true);
     this.searchButton = this.searchUi
       .append("button")
       .classed("c-glyph search-button", true)
-      .attr("name", "search-button");
+      .attr("name", "search-button")
+      .classed("border-on-focus", true);
     this.searchButton
       .append("span")
       .classed("x-screen-reader", true)
@@ -86,11 +88,27 @@ export class Visual implements IVisual {
     this.clearButton = this.searchUi
       .append("button")
       .classed("c-glyph clear-button", true)
-      .attr("name", "clear-button");
+      .attr("name", "clear-button")
+      .classed("border-on-focus", true);
     this.clearButton
       .append("span")
       .classed("x-screen-reader", true)
       .text("Clear");
+    document.addEventListener("keydown", event => {
+      if (event.code === "Tab") {
+        event.preventDefault();
+        this.searchBox.node()?.focus();
+        event.stopPropagation();
+      }
+    })
+
+    this.clearButton.on("keydown", event => {
+      if (event.key === "Tab"){
+        event.preventDefault();
+        this.searchBox.node()?.focus();
+        event.stopPropagation();
+      }
+    })
     // this.updateUiSizing();
     this.searchBox.on("keydown", (event) => {
       if (event.key === "Enter") {
