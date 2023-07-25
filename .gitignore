@@ -63,3 +63,8 @@ typings/
 # dotenv environment variables file
 .env
 
+# webpack files
+webpack.statistics*.html
+
+# VS code local config
+.vscode

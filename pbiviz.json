@@ -4,30 +4,23 @@
     "displayName": "Text Filter",
     "guid": "textFilter25A4896A83E0487089E2B90C9AE57C8A",
     "visualClassName": "Visual",
-    "version": "1.2.1",
+    "version": "2.2.8.0",
     "description": "Provides a search box that can be placed anywhere in your dashboard. This adds a text filtering capability for quick searching across your data.",
     "supportUrl": "https://community.powerbi.com",
     "gitHubUrl": "https://github.com/microsoft/PowerBI-visuals-TextFilter"
   },
   "output": "dist/textFilter.pbiviz",
-  "apiVersion": "1.11.0",
+  "apiVersion": "5.3.0",
   "author": {
     "name": "Microsoft",
-    "email": "msrvizsupport@microsoft.com"
+    "email": "pbicvsupport@microsoft.com"
   },
   "assets": {
     "icon": "assets/icon.png"
   },
-  "externalJS": [
-    "node_modules/d3/d3.min.js",
-    "node_modules/powerbi-models/dist/models.js",
-    "node_modules/powerbi-visuals-utils-dataviewutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-typeutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-svgutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-interactivityutils/lib/index.js"
-  ],
+  "externalJS": null,
   "style": "style/visual.less",
   "capabilities": "capabilities.json",
-  "dependencies": "dependencies.json",
+  "dependencies": null,
   "stringResources": []
 }

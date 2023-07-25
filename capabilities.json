@@ -1,49 +1,79 @@
 {
-    "dataRoles": [
-        {
-            "displayName": "Field",
-            "name": "field",
-            "kind": "Grouping"
+  "dataRoles": [
+    {
+      "displayName": "Field",
+      "name": "field",
+      "kind": "Grouping"
+    }
+  ],
+  "objects": {
+    "general": {
+      "displayName": "General",
+      "properties": {
+        "filter": {
+          "type": {
+            "filter": true
+          }
         }
-    ],
-    "objects": {
-        "general": {
-            "displayName": "General",
-            "properties": {
-              "filter": {
-                "type": {
-                  "filter": true
-                }
-              },
-              "searchText": {
-                "type": {
-                  "text": true
-                }
-              }
-            }
-        }
+      }
     },
-    "dataViewMappings": [
-        {
-            "conditions": [
-                {
-                    "field": {
-                        "max": 1
-                    }
-                }
-            ],
-            "categorical": {
-              "categories": {
-                "for": {
-                  "in": "field"
-                },
-                "dataReductionAlgorithm": {
-                  "top": {
-                    "count": 30000
-                  }
-                }
+    "textBox": {
+      "properties": {
+        "fontFamily": {
+          "type": {
+            "formatting": {
+              "fontFamily": true
+            }
+          }
+        },
+        "fontSize": {
+          "type": {
+            "formatting": {
+              "fontSize": true
+            }
+          }
+        },
+        "border": {
+          "type": {
+            "bool": true
+          }
+        },
+        "borderColor": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
               }
             }
+          }
         }
-    ]
+      }
+    }
+  },
+  "dataViewMappings": [
+    {
+      "conditions": [
+        {
+          "field": {
+            "max": 1
+          }
+        }
+      ],
+      "categorical": {
+        "categories": {
+          "for": {
+            "in": "field"
+          },
+          "dataReductionAlgorithm": {
+            "top": {
+              "count": 30000
+            }
+          }
+        }
+      }
+    }
+  ],
+  "privileges": [],
+  "supportsSynchronizingFilterState": true,
+  "supportsKeyboardFocus": true
 }
