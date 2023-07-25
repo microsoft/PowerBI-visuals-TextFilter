@@ -1,6 +1,6 @@
 {
   "name": "text-filter",
-  "version": "2.2.7.0",
+  "version": "2.2.8.0",
   "scripts": {
     "pbiviz": "pbiviz",
     "start": "pbiviz start",
