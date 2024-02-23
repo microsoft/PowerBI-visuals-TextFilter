@@ -45,7 +45,6 @@ class TextBoxSettingsCard extends Card {
 
     name: string = "textBox";
     displayNameKey?: string = "Visual_Textbox_Settings";
-    placeholderTextKey: string = "Visual_Input_Placeholder"
 
 
     private minFontSize: number = 8;

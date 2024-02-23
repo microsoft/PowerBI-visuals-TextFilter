@@ -64,12 +64,15 @@ export class Visual implements IVisual {
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
     this.target = options.element;
+    this.localizationManager = options.host.createLocalizationManager();
+
     this.searchUi = d3Select(this.target)
       .append("div")
       .classed("text-filter-search", true);
     this.searchBox = this.searchUi
       .append("input")
-      .attr("aria-label", "Enter your search")
+      .attr('placeholder', this.localizationManager.getDisplayName("Visual_Input_Placeholder"))
+      .attr("aria-label", this.localizationManager.getDisplayName("Visual_Input_Placeholder"))
       .attr("type", "text")
       .attr("name", "search-field")
       .attr("autofocus", true)
@@ -80,7 +83,8 @@ export class Visual implements IVisual {
       .append("button")
       .classed("c-glyph search-button", true)
       .attr("name", "search-button")
-      .classed("border-on-focus", true);
+      .attr("tabindex", 0)
+      .classed("outline-on-focus", true);
     this.searchButton
       .append("span")
       .classed("x-screen-reader", true)
@@ -89,29 +93,12 @@ export class Visual implements IVisual {
       .append("button")
       .classed("c-glyph clear-button", true)
       .attr("name", "clear-button")
+      .attr("tabindex", 0)
       .classed("border-on-focus", true);
     this.clearButton
       .append("span")
       .classed("x-screen-reader", true)
       .text("Clear");
-
-    // custom visuals require 2 tabs to get to the first focusable element (by design)
-    // event listener below is designed to overcome this limitation
-    window.addEventListener('focus', (event) => {
-      // focus entered from the parent window
-      if (event.target === window){
-        this.searchBox.node().focus();
-      }
-    })
-
-    // focus input after clear button
-    this.clearButton.on("keydown", event => {
-      if (event.key === "Tab") {
-        event.preventDefault();
-        this.searchBox.node()?.focus();
-        event.stopPropagation();
-      }
-    })
 
     this.searchBox.on("keydown", (event) => {
       if (event.key === "Enter") {
@@ -119,7 +106,7 @@ export class Visual implements IVisual {
       }
     });
 
-// these click handlers also handle "Enter" key press with keyboard navigation
+    // these click handlers also handle "Enter" key press with keyboard navigation
     this.searchButton
       .on("click", () => this.performSearch(this.searchBox.property("value")));
     this.clearButton
@@ -137,7 +124,6 @@ export class Visual implements IVisual {
         mouseEvent.preventDefault();
       });
 
-    this.localizationManager = options.host.createLocalizationManager()
     this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
 
     this.host = options.host;
@@ -192,7 +178,6 @@ export class Visual implements IVisual {
       .style('font-size', `${fontSize}pt`)
       .style('font-family', textBox.font.fontFamily.value);
     this.searchBox
-      .attr('placeholder', this.localizationManager.getDisplayName(textBox.placeholderTextKey))
       .style('width', `calc(100% - ${fontScaleStd}px)`)
       .style('padding-right', `${fontScaleStd}px`)
       .style('border-style', textBox.enableBorder.value && 'solid' || 'none')

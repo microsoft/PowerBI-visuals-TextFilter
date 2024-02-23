@@ -78,7 +78,7 @@ div {
 }
 
 .text-filter-search .clear-button {
-    border: 0;
+    border: 2px transparent;
     background-color: white;
     display: inline-block;
     transition: color .1s, background-color .1s;
@@ -131,4 +131,9 @@ div {
 
 .border-on-focus:focus {
     border: solid 2px black !important;
+}
+
+// border makes the background image smaller while outline does not 
+.outline-on-focus:focus {
+    outline: solid 2px black !important;
 }
