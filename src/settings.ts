@@ -26,8 +26,17 @@
 
 
 import powerbi from "powerbi-visuals-api";
+import {formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
+import Card = FormattingSettings.SimpleCard;
+import Model = FormattingSettings.Model;
+import ColorPicker = FormattingSettings.ColorPicker;
+import FontControl = FormattingSettings.FontControl;
+import FontPicker = FormattingSettings.FontPicker;
+import NumUpDown = FormattingSettings.NumUpDown;
+import Slice = FormattingSettings.Slice;
+import ToggleSwitch = FormattingSettings.ToggleSwitch;
 
-import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel/lib/FormattingSettingsComponents";
+// import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel";
 
 export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();

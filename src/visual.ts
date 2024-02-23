@@ -141,7 +141,7 @@ export class Visual implements IVisual {
 
   public update(options: VisualUpdateOptions) {
     this.events.renderingStarted(options);
-    this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews);
+    this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews[0]);
     const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
     const newColumn = metadata && metadata.columns && metadata.columns[0];
     let searchText = "";
