@@ -74,11 +74,13 @@ export class Visual implements IVisual {
       .attr("name", "search-field")
       .attr("autofocus", true)
       .attr("tabindex", 0)
-      .classed("accessibility-compliant", true);
+      .classed("accessibility-compliant", true)
+      .classed("border-on-focus", true);
     this.searchButton = this.searchUi
       .append("button")
       .classed("c-glyph search-button", true)
-      .attr("name", "search-button");
+      .attr("name", "search-button")
+      .classed("border-on-focus", true);
     this.searchButton
       .append("span")
       .classed("x-screen-reader", true)
@@ -86,22 +88,44 @@ export class Visual implements IVisual {
     this.clearButton = this.searchUi
       .append("button")
       .classed("c-glyph clear-button", true)
-      .attr("name", "clear-button");
+      .attr("name", "clear-button")
+      .classed("border-on-focus", true);
     this.clearButton
       .append("span")
       .classed("x-screen-reader", true)
       .text("Clear");
-    // this.updateUiSizing();
+
+    // custom visuals require 2 tabs to get to the first focusable element (by design)
+    // event listener below is designed to overcome this limitation
+    window.addEventListener('focus', (event) => {
+      // focus entered from the parent window
+      if (event.target === window){
+        this.searchBox.node().focus();
+      }
+    })
+
+    // focus input after clear button
+    this.clearButton.on("keydown", event => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+        this.searchBox.node()?.focus();
+        event.stopPropagation();
+      }
+    })
+
     this.searchBox.on("keydown", (event) => {
       if (event.key === "Enter") {
         this.performSearch(this.searchBox.property("value"));
       }
     });
+
+// these click handlers also handle "Enter" key press with keyboard navigation
     this.searchButton
       .on("click", () => this.performSearch(this.searchBox.property("value")));
     this.clearButton
       .on("click", () => this.performSearch(""));
-    d3Select(this.target)
+
+      d3Select(this.target)
       .on("contextmenu", (event) => {
         const
           mouseEvent: MouseEvent = event,
@@ -112,7 +136,7 @@ export class Visual implements IVisual {
         });
         mouseEvent.preventDefault();
       });
-  
+
     this.localizationManager = options.host.createLocalizationManager()
     this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
 
@@ -143,7 +167,7 @@ export class Visual implements IVisual {
 
       // Well, it hasn't changed, then lets try to load the existing search text.
     } else if (options?.jsonFilters?.length > 0) {
-        searchText = `${(<IAdvancedFilter[]>options.jsonFilters).map((f) => f.conditions.map((c) => c.value)).join(" ")}`;
+      searchText = `${(<IAdvancedFilter[]>options.jsonFilters).map((f) => f.conditions.map((c) => c.value)).join(" ")}`;
     }
 
     this.searchBox.property("value", searchText);
