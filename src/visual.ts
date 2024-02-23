@@ -100,6 +100,7 @@ export class Visual implements IVisual {
       .classed("x-screen-reader", true)
       .text("Clear");
 
+
     this.searchBox.on("keydown", (event) => {
       if (event.key === "Enter") {
         this.performSearch(this.searchBox.property("value"));
