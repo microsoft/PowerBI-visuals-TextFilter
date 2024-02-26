@@ -1,6 +1,6 @@
 {
   "name": "text-filter",
-  "version": "2.2.9.0",
+  "version": "2.3.0.0",
   "scripts": {
     "pbiviz": "pbiviz",
     "start": "pbiviz start",
@@ -9,19 +9,19 @@
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "devDependencies": {
-    "@types/d3-selection": "^3.0.5",
-    "@typescript-eslint/eslint-plugin": "^5.59.1",
-    "@typescript-eslint/parser": "^5.59.1",
-    "eslint": "^8.39.0",
+    "@types/d3-selection": "^3.0.10",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "eslint": "^8.56.0",
     "eslint-plugin-powerbi-visuals": "^0.8.1",
-    "powerbi-visuals-tools": "^4.3.2",
-    "ts-loader": "6.1.0",
-    "typescript": "^5.0.4"
+    "powerbi-visuals-tools": "^5.4.2",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "d3-selection": "^3.0.0",
-    "powerbi-models": "^1.7.0",
-    "powerbi-visuals-api": "~5.3.0",
-    "powerbi-visuals-utils-formattingmodel": "^5.0.1"
+    "powerbi-models": "^1.14.0",
+    "powerbi-visuals-api": "~5.8.0",
+    "powerbi-visuals-utils-formattingmodel": "^6.0.1"
   }
 }
