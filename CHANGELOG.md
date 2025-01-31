@@ -1,3 +1,7 @@
+## 2.4.0.0
+### Visual changes
+* Add support for multi selection
+
 ## 2.3.1.0
 ### Visual changes
 * Add a support for hierarchical data filtering

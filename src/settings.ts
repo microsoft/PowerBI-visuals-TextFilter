@@ -26,7 +26,7 @@
 
 
 import powerbi from "powerbi-visuals-api";
-import {formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
+import {formattingSettings, formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
 import Card = FormattingSettings.SimpleCard;
 import Model = FormattingSettings.Model;
 import ColorPicker = FormattingSettings.ColorPicker;
@@ -40,15 +40,14 @@ import ToggleSwitch = FormattingSettings.ToggleSwitch;
 
 export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();
-    cards: Card[] = [this.textBox];
+    filter = new FilterSettingsCard();
+    cards: Card[] = [this.textBox, this.filter];
 
     // we don't need color picker for border color if the border is disabled
     public removeBorderColor() {
         this.textBox.slices = [this.textBox.font, this.textBox.enableBorder]
     }
 }
-
-
 
 class TextBoxSettingsCard extends Card {
 
@@ -93,5 +92,27 @@ class TextBoxSettingsCard extends Card {
     });
 
     slices: Slice[] = [this.font, this.enableBorder, this.borderColor];
+}
+
+class FilterSettingsCard extends Card {
+    enableMultiSelection = new formattingSettings.ToggleSwitch({
+        name: "enableMultiSelection",
+        displayName: "Enable multi selection",
+        displayNameKey: "Visual_Enable_Multi_Selection",
+        value: false,
+    });
+
+    separator = new formattingSettings.TextInput({
+        name: "separator",
+        displayName: "Separator",
+        displayNameKey: "Visual_Separator",
+        value: ";",
+        placeholder: "",
+    });
+
+    name = "filter";
+    displayName = "Filter";
+    displayNameKey = 'Visual_Filter';
+    slices = [this.enableMultiSelection, this.separator];
 }
 

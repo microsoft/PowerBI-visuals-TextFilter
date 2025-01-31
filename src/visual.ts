@@ -34,7 +34,7 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import FilterAction = powerbi.FilterAction;
 import ISQExpr = powerbi.data.ISQExpr;
-import { IAdvancedFilter, AdvancedFilter, IFilterTarget } from "powerbi-models";
+import { IFilterTarget, BasicFilter } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
@@ -142,27 +142,41 @@ export class Visual implements IVisual {
   }
 
   public update(options: VisualUpdateOptions) {
-    this.events.renderingStarted(options);
-    this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews[0]);
-    const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
-    const newColumn = metadata && metadata.columns && metadata.columns[0];
-    let searchText = "";
-    this.updateUiSizing();
+    try {
 
-    // We had a column, but now it is empty, or it has changed.
-    if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
-      this.performSearch("");
+      this.events.renderingStarted(options);
+      this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews[0]);
+      const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
+      const newColumn = metadata && metadata.columns && metadata.columns[0];
+      let searchText = "";
+      this.updateUiSizing();
 
-      // Well, it hasn't changed, then lets try to load the existing search text.
-    } else if (options?.jsonFilters?.length > 0) {
-      searchText = `${(<IAdvancedFilter[]>options.jsonFilters).map((f) => f.conditions.map((c) => c.value)).join(" ")}`;
+      // We had a column, but now it is empty, or it has changed.
+      if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
+        this.performSearch("");
+
+        // Well, it hasn't changed, then lets try to load the existing search text.
+      } else if (options?.jsonFilters?.length > 0) {
+        const basicFilters = <BasicFilter[]>options.jsonFilters;
+        const previousFilters: string[] = basicFilters.reduce((acc, filter) => {
+          filter.values.forEach((value) => {
+            acc.push(value.toString());
+          })
+
+          return acc;
+        }, []);
+
+        searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+      }
+
+      this.searchBox.property("value", searchText);
+      this.column = newColumn;
+
+      this.events.renderingFinished(options);
+    } catch (error) {
+      console.error(error);
+      this.events.renderingFailed(options, error);
     }
-
-    this.searchBox.property("value", searchText);
-    this.column = newColumn;
-
-    this.events.renderingFinished(options);
-
   }
 
   /**
@@ -225,17 +239,20 @@ export class Visual implements IVisual {
         };
       }
 
-      let filter: AdvancedFilter | null = null;
+      let filter: BasicFilter | null = null;
       let action = FilterAction.remove;
+
+      let matches: string[];
+      if (this.formattingSettings.filter.enableMultiSelection.value) {
+        const separator: string = this.formattingSettings.filter.separator.value;
+        matches = text.split(separator);
+      } else {
+        matches = [text];
+      }
+
       if (!isBlank) {
-        filter = new AdvancedFilter(
-          target,
-          "And",
-          {
-            operator: "Contains",
-            value: text
-          }
-        );
+        filter = new BasicFilter(target, "In", matches)
+        
         action = FilterAction.merge;
       }
       this.host.applyJsonFilter(filter, "general", "filter", action);

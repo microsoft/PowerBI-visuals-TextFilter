@@ -17,6 +17,20 @@
         }
       }
     },
+    "filter": {
+      "properties": {
+        "enableMultiSelection": {
+          "type": {
+            "bool": true
+          }
+        },
+        "separator": {
+          "type": {
+            "text": true
+          }
+        }
+      }
+    },
     "textBox": {
       "properties": {
         "fontFamily": {

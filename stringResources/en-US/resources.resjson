@@ -5,5 +5,8 @@
     "Visual_Border_color": "Border color",
     "Visual_Font_Size": "Text Size",
     "Visual_Font_Family": "Font family",
-    "Visual_Font": "Font"
+    "Visual_Font": "Font",
+    "Visual_Filter": "Filter",
+    "Visual_Enable_Multi_Selection": "Enable multi selection",
+    "Visual_Separator": "Separator"
 }
