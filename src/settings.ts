@@ -95,6 +95,13 @@ class TextBoxSettingsCard extends Card {
 }
 
 class FilterSettingsCard extends Card {
+    showExcludeButton = new formattingSettings.ToggleSwitch({
+        name: "showExcludeButton",
+        displayName: "Show exclude button",
+        displayNameKey: "Visual_Show_Exclude_Button",
+        value: false,
+    });
+
     enableMultiSelection = new formattingSettings.ToggleSwitch({
         name: "enableMultiSelection",
         displayName: "Enable multi selection",
@@ -113,6 +120,6 @@ class FilterSettingsCard extends Card {
     name = "filter";
     displayName = "Filter";
     displayNameKey = 'Visual_Filter';
-    slices = [this.enableMultiSelection, this.separator];
+    slices = [this.showExcludeButton, this.enableMultiSelection, this.separator];
 }
 

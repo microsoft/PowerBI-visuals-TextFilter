@@ -1,3 +1,6 @@
+## 2.4.1.0
+* Add support for "include/exclude" matches
+
 ## 2.4.0.0
 ### Visual changes
 * Add support for multi selection

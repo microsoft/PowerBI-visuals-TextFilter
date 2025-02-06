@@ -19,6 +19,11 @@
     },
     "filter": {
       "properties": {
+        "showExcludeButton": {
+          "type": {
+            "bool": true
+          }
+        },
         "enableMultiSelection": {
           "type": {
             "bool": true

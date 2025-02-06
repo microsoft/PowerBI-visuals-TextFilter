@@ -54,6 +54,7 @@ export class Visual implements IVisual {
   private searchUi: d3Selection<HTMLDivElement, unknown, null, undefined>;
   private searchBox: d3Selection<HTMLInputElement, unknown, null, undefined>;
   private searchButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
+  private filterButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
   private clearButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
@@ -61,6 +62,7 @@ export class Visual implements IVisual {
   private formattingSettingsService: FormattingSettingsService;
   private formattingSettings: TextFilterSettingsModel;
   private localizationManager: ILocalizationManager;
+  private includeMatches: boolean = true;
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -90,6 +92,14 @@ export class Visual implements IVisual {
       .append("span")
       .classed("x-screen-reader", true)
       .text("Search");
+
+    this.filterButton = this.searchUi
+      .append("button")
+      .classed("c-glyph", true)
+      .attr("name", "filter-button")
+      .attr("tabindex", 0)
+      .classed("border-on-focus", true);
+
     this.clearButton = this.searchUi
       .append("button")
       .classed("c-glyph clear-button", true)
@@ -109,10 +119,13 @@ export class Visual implements IVisual {
     });
 
     // these click handlers also handle "Enter" key press with keyboard navigation
-    this.searchButton
-      .on("click", () => this.performSearch(this.searchBox.property("value")));
-    this.clearButton
-      .on("click", () => this.performSearch(""));
+    this.searchButton.on("click", () => this.performSearch(this.searchBox.property("value")));
+    this.clearButton.on("click", () => this.performSearch(""));
+    this.filterButton.on("click", () => {
+      const text = this.searchBox.property("value");
+      const includeMatches = !this.includeMatches;
+      this.performSearch(text, includeMatches);
+    });
 
       d3Select(this.target)
       .on("contextmenu", (event) => {
@@ -149,6 +162,7 @@ export class Visual implements IVisual {
       const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
       const newColumn = metadata && metadata.columns && metadata.columns[0];
       let searchText = "";
+
       this.updateUiSizing();
 
       // We had a column, but now it is empty, or it has changed.
@@ -159,7 +173,9 @@ export class Visual implements IVisual {
       } else if (options?.jsonFilters?.length > 0) {
         const basicFilters = <BasicFilter[]>options.jsonFilters;
         const previousFilters: string[] = basicFilters.reduce((acc, filter) => {
-          filter.values.forEach((value) => {
+          this.includeMatches = filter.operator === "In";
+
+          filter?.values?.forEach((value) => {
             acc.push(value.toString());
           })
 
@@ -169,6 +185,8 @@ export class Visual implements IVisual {
         searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
       }
 
+      this.updateFilterButton();
+
       this.searchBox.property("value", searchText);
       this.column = newColumn;
 
@@ -177,6 +195,13 @@ export class Visual implements IVisual {
       console.error(error);
       this.events.renderingFailed(options, error);
     }
+  }
+
+  private updateFilterButton() {
+    this.filterButton.classed("hidden-button", !this.formattingSettings.filter.showExcludeButton.value);
+
+    this.filterButton.classed(this.includeMatches ? "filter-include" : "filter-exclude", true);
+    this.filterButton.classed(!this.includeMatches ? "filter-include" : "filter-exclude", false);
   }
 
   /**
@@ -194,15 +219,18 @@ export class Visual implements IVisual {
       .style('font-size', `${fontSize}pt`)
       .style('font-family', textBox.font.fontFamily.value);
     this.searchBox
-      .style('width', `calc(100% - ${fontScaleStd}px)`)
+      .style('width', `calc(100% - ${fontScaleStd * (this.formattingSettings.filter.showExcludeButton.value ? 2 : 1)}px)`) // one for filter button, one for clear button
       .style('padding-right', `${fontScaleStd}px`)
       .style('border-style', textBox.enableBorder.value && 'solid' || 'none')
       .style('border-color', textBox.borderColor.value.value);
     this.searchButton
-      .style('right', `${fontScaleLrg}px`)
+      .style('right', `${fontScaleLrg + (this.formattingSettings.filter.showExcludeButton.value ? fontScaleStd : 0)}px`)
       .style('width', `${fontScaleSml}px`)
       .style('height', `${fontScaleSml}px`)
       .style('font-size', `${fontSize}pt`);
+    this.filterButton
+      .style('width', `${fontScaleStd}px`)
+      .style('height', `${fontScaleStd}px`);
     this.clearButton
       .style('width', `${fontScaleStd}px`)
       .style('height', `${fontScaleStd}px`);
@@ -212,7 +240,7 @@ export class Visual implements IVisual {
    * Perfom search/filtering in a column
    * @param {string} text - text to filter on
    */
-  public performSearch(text: string) {
+  public performSearch(text: string, includeMatches: boolean = this.includeMatches) {
     if (this.column) {
       const isBlank = ((text || "") + "").match(/^\s*$/);
       let target: IFilterTarget;
@@ -251,7 +279,7 @@ export class Visual implements IVisual {
       }
 
       if (!isBlank) {
-        filter = new BasicFilter(target, "In", matches)
+        filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches)
         
         action = FilterAction.merge;
       }
