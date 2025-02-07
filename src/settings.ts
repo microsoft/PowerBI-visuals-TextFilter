@@ -99,14 +99,14 @@ class FilterSettingsCard extends Card {
         name: "showExcludeButton",
         displayName: "Show exclude button",
         displayNameKey: "Visual_Show_Exclude_Button",
-        value: false,
+        value: true,
     });
 
     enableMultiSelection = new formattingSettings.ToggleSwitch({
         name: "enableMultiSelection",
         displayName: "Enable multi selection",
         displayNameKey: "Visual_Enable_Multi_Selection",
-        value: false,
+        value: true,
     });
 
     separator = new formattingSettings.TextInput({

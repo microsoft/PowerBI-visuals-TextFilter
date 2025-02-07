@@ -1,3 +1,6 @@
+## 2.4.2.0
+* Enable multi selection and exclude button by default
+
 ## 2.4.1.0
 * Add support for "include/exclude" matches
 
