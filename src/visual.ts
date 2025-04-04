@@ -57,14 +57,17 @@ export class Visual implements IVisual {
   private searchButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
   private clearButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
   private filterMode: d3Selection<HTMLSelectElement, unknown, null, undefined>;
+
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
   private events: IVisualEventService;
   private formattingSettingsService: FormattingSettingsService;
   private formattingSettings: TextFilterSettingsModel;
   private localizationManager: ILocalizationManager;
+  private dataView: powerbi.DataView;
 
   private previousFilterMode: FilterMode;
+  private regex: string;
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -144,7 +147,10 @@ export class Visual implements IVisual {
     });
 
     // these click handlers also handle "Enter" key press with keyboard navigation
-    this.searchButton.on("click", () => this.performSearch(this.searchBox.property("value")));
+    this.searchButton.on("click", () => {
+      return this.performSearch(this.searchBox.property("value"));
+    });
+
     this.clearButton.on("click", () => this.performSearch(""));
 
     d3Select(this.target)
@@ -177,7 +183,8 @@ export class Visual implements IVisual {
   public update(options: VisualUpdateOptions) {
     try {
       this.events.renderingStarted(options);
-      this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews[0]);
+      this.dataView = options.dataViews[0];
+      this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, this.dataView);
       this.formattingSettings.setLocalizedOptions(this.localizationManager);
       const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
       const newColumn = metadata && metadata.columns && metadata.columns[0];
@@ -195,13 +202,21 @@ export class Visual implements IVisual {
         const basicFilters = <BasicFilter[]>options.jsonFilters;
         const previousFilters: string[] = basicFilters.reduce((acc, filter) => {
           filter?.values?.forEach((value) => {
-            acc.push(value.toString());
+            if (value) {
+              acc.push(value.toString());
+            }
           });
 
           return acc;
         }, []);
 
-        searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+          searchText = this.regex || "";
+        } else if (this.previousFilterMode === FilterMode.Regex) {
+          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        } else {
+          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        }
 
         if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
           this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
@@ -211,6 +226,20 @@ export class Visual implements IVisual {
 
       this.searchBox.property("value", searchText);
       this.column = newColumn;
+
+      setTimeout(() => {
+        if (this.regex !== this.formattingSettings.filter.regex.value) {
+          this.host.persistProperties({
+            merge: [{
+              objectName: "filter",
+              selector: null,
+              properties: {
+                regex: this.regex
+              }
+            }]
+          });
+        }
+      }, 100);
 
       this.events.renderingFinished(options);
     } catch (error) {
@@ -270,38 +299,47 @@ export class Visual implements IVisual {
    */
   public performSearch(text: string) {
     if (this.column) {
-      const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include;
-      const isBlank = ((text || "") + "").match(/^\s*$/);
-
-      // Code improvements:
-      // Use last index of the dot to get the column name. Table name is not necessary.
-      // const dotIndex = this.column.queryName.lastIndexOf(".");
-
       const dotIndex = this.column.queryName.indexOf(".");
       const target: IFilterTarget = {
         table: this.column.queryName.slice(0, dotIndex),
         column: this.column.queryName.slice(dotIndex + 1)
       };
 
-      let filter: BasicFilter | null = null;
-      let action = FilterAction.remove;
-
+      const isBlank = ((text || "") + "").match(/^\s*$/);
       let matches: string[];
-      if (this.formattingSettings.filter.enableMultiSelection.value) {
-        const separator: string = this.formattingSettings.filter.separator.value;
-        matches = text.split(separator);
+      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+        matches = this.regexSearch(text);
+        this.regex = text;
       } else {
-        matches = [text];
+        matches = this.basicSearch(text);
       }
 
+      const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
+      let filter: BasicFilter | null = null;
+      let action: FilterAction = FilterAction.remove;
       if (!isBlank) {
         filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches)
-
         action = FilterAction.merge;
       }
       this.host.applyJsonFilter(filter, "general", "filter", action);
     }
     this.searchBox.property("value", text);
+  }
+
+  private regexSearch(text: string): string[] {
+    const regex = new RegExp(text);
+    const values: string[] = this.dataView?.categorical?.categories?.[0]?.values.map(x => x.toString()) || [];
+    const filteredValues = values.filter(value => regex.test(value));
+    return filteredValues
+  }
+
+  private basicSearch(text: string): string[] {
+    if (this.formattingSettings.filter.enableMultiSelection.value) {
+      const separator: string = this.formattingSettings.filter.separator.value;
+      return text.split(separator);
+    }
+
+    return [text];
   }
 
   /**

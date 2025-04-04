@@ -134,11 +134,19 @@ class FilterSettingsCard extends CompositeCard {
         value: filterModeOptions[0],
     });
 
+    regex = new formattingSettings.TextInput({
+        name: "regex",
+        displayName: "Regex string",
+        displayNameKey: "Visual_Filter_Regex",
+        value: "",
+        placeholder: "",
+    });
+
     generalFilterGroup = new formattingSettings.Group({
         name: "generalFilterGroup",
         displayName: "General",
         displayNameKey: "Visual_General",
-        slices: [this.showFilterModeButton, this.filterMode],
+        slices: [this.showFilterModeButton, this.filterMode, this.regex],
     });
 
     enableMultiSelection = new formattingSettings.ToggleSwitch({

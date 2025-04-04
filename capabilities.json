@@ -29,6 +29,11 @@
             "enumeration": []
           }
         },
+        "regex": {
+          "type": {
+            "text": true
+          }
+        },
         "enableMultiSelection": {
           "type": {
             "bool": true
