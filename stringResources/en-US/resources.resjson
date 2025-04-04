@@ -1,4 +1,5 @@
 {
+    "Visual_General": "General",
     "Visual_Textbox_Settings": "Text box",
     "Visual_Input_Placeholder": "Search",
     "Visual_Enable_Border": "Show border",
@@ -7,7 +8,12 @@
     "Visual_Font_Family": "Font family",
     "Visual_Font": "Font",
     "Visual_Filter": "Filter",
-    "Visual_Show_Exclude_Button": "Show exclude button",
+    "Visual_Filter_Mode": "Filter mode",
+    "Visual_Filter_Include": "Include",
+    "Visual_Filter_Exclude": "Exclude",
+    "Visual_Filter_Regex": "Regex",
+    "Visual_Show_Filter_Mode_Button": "Show filter mode button",
+    "Visual_Multi_Selection": "Multi selection",
     "Visual_Enable_Multi_Selection": "Enable multi selection",
     "Visual_Separator": "Separator"
 }

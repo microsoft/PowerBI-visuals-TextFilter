@@ -27,7 +27,12 @@
 
 import powerbi from "powerbi-visuals-api";
 import {formattingSettings, formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
+import { FilterMode } from "./filterMode";
+import IEnumMember = powerbi.IEnumMember;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+
 import Card = FormattingSettings.SimpleCard;
+import CompositeCard = FormattingSettings.CompositeCard;
 import Model = FormattingSettings.Model;
 import ColorPicker = FormattingSettings.ColorPicker;
 import FontControl = FormattingSettings.FontControl;
@@ -46,6 +51,16 @@ export class TextFilterSettingsModel extends Model {
     // we don't need color picker for border color if the border is disabled
     public removeBorderColor() {
         this.textBox.slices = [this.textBox.font, this.textBox.enableBorder]
+    }
+
+    public setLocalizedOptions(localizationManager: ILocalizationManager) {
+        this.setLocalizedDisplayName(filterModeOptions, localizationManager);
+    }
+
+    private setLocalizedDisplayName(options: IEnumMember[], localizationManager: ILocalizationManager) {
+        options.forEach((option: IEnumMember) => {
+            option.displayName = localizationManager.getDisplayName(option.displayName.toString());
+        });
     }
 }
 
@@ -94,12 +109,36 @@ class TextBoxSettingsCard extends Card {
     slices: Slice[] = [this.font, this.enableBorder, this.borderColor];
 }
 
-class FilterSettingsCard extends Card {
-    showExcludeButton = new formattingSettings.ToggleSwitch({
-        name: "showExcludeButton",
-        displayName: "Show exclude button",
-        displayNameKey: "Visual_Show_Exclude_Button",
-        value: true,
+
+const filterModeOptions: IEnumMember[] = [
+    { value: FilterMode.Include, displayName: "Visual_Filter_Include" },
+    { value: FilterMode.Exclude, displayName: "Visual_Filter_Exclude" },
+    { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
+];
+
+class FilterSettingsCard extends CompositeCard {
+    showFilterModeButton = new ToggleSwitch({
+        name: "showFilterModeButton",
+        displayName: "Show filter mode button",
+        displayNameKey: "Visual_Show_Filter_Mode_Button",
+        description: "Show filter mode button",
+        descriptionKey: "Visual_Show_Filter_Mode_Button",
+        value: false,
+    });
+
+    filterMode = new formattingSettings.ItemDropdown({
+        name: "filterMode",
+        displayName: "Filter mode",
+        displayNameKey: "Visual_Filter_Mode",
+        items: filterModeOptions,
+        value: filterModeOptions[0],
+    });
+
+    generalFilterGroup = new formattingSettings.Group({
+        name: "generalFilterGroup",
+        displayName: "General",
+        displayNameKey: "Visual_General",
+        slices: [this.showFilterModeButton, this.filterMode],
     });
 
     enableMultiSelection = new formattingSettings.ToggleSwitch({
@@ -117,9 +156,17 @@ class FilterSettingsCard extends Card {
         placeholder: "",
     });
 
+    multiSelectionGroup = new formattingSettings.Group({
+        name: "multiSelectionGroup",
+        displayName: "Multi selection",
+        displayNameKey: "Visual_Multi_Selection",
+        topLevelSlice: this.enableMultiSelection,
+        slices: [this.separator],
+    });
+
     name = "filter";
     displayName = "Filter";
     displayNameKey = 'Visual_Filter';
-    slices = [this.showExcludeButton, this.enableMultiSelection, this.separator];
+    groups = [this.generalFilterGroup, this.multiSelectionGroup];
 }
 
