@@ -90,7 +90,7 @@
           },
           "dataReductionAlgorithm": {
             "top": {
-              "count": 1
+              "count": 30000
             }
           }
         }
