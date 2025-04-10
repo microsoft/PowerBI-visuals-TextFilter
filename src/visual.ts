@@ -111,6 +111,7 @@ export class Visual implements IVisual {
 
     this.filterMode = this.searchUi
       .append("select")
+      .classed("filter-mode-select", true);
 
     this.filterMode
       .selectAll("option")
@@ -227,19 +228,18 @@ export class Visual implements IVisual {
       this.searchBox.property("value", searchText);
       this.column = newColumn;
 
-      setTimeout(() => {
-        if (this.regex !== this.formattingSettings.filter.regex.value) {
-          this.host.persistProperties({
-            merge: [{
-              objectName: "filter",
-              selector: null,
-              properties: {
-                regex: this.regex
-              }
-            }]
-          });
-        }
-      }, 100);
+
+      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex && this.regex !== this.formattingSettings.filter.regex.value) {
+        this.host.persistProperties({
+          merge: [{
+            objectName: "filter",
+            selector: null,
+            properties: {
+              regex: this.regex
+            }
+          }]
+        });
+      }
 
       this.events.renderingFinished(options);
     } catch (error) {
@@ -302,7 +302,7 @@ export class Visual implements IVisual {
       const dotIndex = this.column.queryName.indexOf(".");
       const target: IFilterTarget = {
         table: this.column.queryName.slice(0, dotIndex),
-        column: this.column.queryName.slice(dotIndex + 1)
+        column: this.column.queryName.slice(dotIndex + 1),
       };
 
       const isBlank = ((text || "") + "").match(/^\s*$/);

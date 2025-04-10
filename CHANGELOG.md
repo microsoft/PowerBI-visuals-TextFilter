@@ -1,3 +1,6 @@
+## 2.4.3.0
+* Add regex filter mode
+
 ## 2.4.2.0
 * Enable multi selection and exclude button by default
 

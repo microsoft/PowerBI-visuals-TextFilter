@@ -140,6 +140,7 @@ class FilterSettingsCard extends CompositeCard {
         displayNameKey: "Visual_Filter_Regex",
         value: "",
         placeholder: "",
+        visible: false,
     });
 
     generalFilterGroup = new formattingSettings.Group({
