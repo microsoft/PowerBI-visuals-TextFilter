@@ -33,13 +33,15 @@ import IVisual = powerbi.extensibility.visual.IVisual;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import FilterAction = powerbi.FilterAction;
-import { IAdvancedFilter, AdvancedFilter } from "powerbi-models";
+import ISQExpr = powerbi.data.ISQExpr;
+import { IFilterTarget, BasicFilter } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
 import { TextFilterSettingsModel } from "./settings";
 
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { FilterMode, FilterModeOptions, isFilterMode } from "./filterMode";
 
 const pxToPt = 0.75,
   fontPxAdjSml = 20,
@@ -50,16 +52,22 @@ const pxToPt = 0.75,
 export class Visual implements IVisual {
 
   private target: HTMLElement;
-  private searchUi: d3Selection<HTMLDivElement, any, any, any>;
-  private searchBox: d3Selection<HTMLInputElement, any, any, any>;
-  private searchButton: d3Selection<HTMLButtonElement, any, any, any>;
-  private clearButton: d3Selection<HTMLButtonElement, any, any, any>;
+  private searchUi: d3Selection<HTMLDivElement, unknown, null, undefined>;
+  private searchBox: d3Selection<HTMLInputElement, unknown, null, undefined>;
+  private searchButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
+  private clearButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
+  private filterMode: d3Selection<HTMLSelectElement, unknown, null, undefined>;
+
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
   private events: IVisualEventService;
   private formattingSettingsService: FormattingSettingsService;
   private formattingSettings: TextFilterSettingsModel;
   private localizationManager: ILocalizationManager;
+  private dataView: powerbi.DataView;
+
+  private previousFilterMode: FilterMode;
+  private regex: string;
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -89,6 +97,7 @@ export class Visual implements IVisual {
       .append("span")
       .classed("x-screen-reader", true)
       .text("Search");
+
     this.clearButton = this.searchUi
       .append("button")
       .classed("c-glyph clear-button", true)
@@ -100,6 +109,37 @@ export class Visual implements IVisual {
       .classed("x-screen-reader", true)
       .text("Clear");
 
+    this.filterMode = this.searchUi
+      .append("select")
+      .classed("filter-mode-select", true);
+
+    this.filterMode
+      .selectAll("option")
+      .data(FilterModeOptions)
+      .enter()
+      .append("option")
+      .attr("value", (d) => d)
+      .text((d) => d);
+
+    this.filterMode.on("change", (event: Event) => {
+      const target = event.target as HTMLSelectElement;
+
+      if (!isFilterMode(target.value)) {
+        throw new Error(`Invalid filter mode: ${target.value}.`);
+      }
+
+      this.previousFilterMode = this?.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include;
+      const filterMode: FilterMode = target.value;
+      this.host.persistProperties({
+        merge: [{
+          objectName: "filter",
+          selector: null,
+          properties: {
+            filterMode: filterMode
+          }
+        }]
+      });
+    });
 
     this.searchBox.on("keydown", (event) => {
       if (event.key === "Enter") {
@@ -108,12 +148,13 @@ export class Visual implements IVisual {
     });
 
     // these click handlers also handle "Enter" key press with keyboard navigation
-    this.searchButton
-      .on("click", () => this.performSearch(this.searchBox.property("value")));
-    this.clearButton
-      .on("click", () => this.performSearch(""));
+    this.searchButton.on("click", () => {
+      return this.performSearch(this.searchBox.property("value"));
+    });
 
-      d3Select(this.target)
+    this.clearButton.on("click", () => this.performSearch(""));
+
+    d3Select(this.target)
       .on("contextmenu", (event) => {
         const
           mouseEvent: MouseEvent = event,
@@ -141,27 +182,70 @@ export class Visual implements IVisual {
   }
 
   public update(options: VisualUpdateOptions) {
-    this.events.renderingStarted(options);
-    this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, options.dataViews[0]);
-    const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
-    const newColumn = metadata && metadata.columns && metadata.columns[0];
-    let searchText = "";
-    this.updateUiSizing();
+    try {
+      this.events.renderingStarted(options);
+      this.dataView = options.dataViews[0];
+      this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(TextFilterSettingsModel, this.dataView);
+      this.formattingSettings.setLocalizedOptions(this.localizationManager);
+      const metadata = options.dataViews && options.dataViews[0] && options.dataViews[0].metadata;
+      const newColumn = metadata && metadata.columns && metadata.columns[0];
+      let searchText = "";
 
-    // We had a column, but now it is empty, or it has changed.
-    if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
-      this.performSearch("");
+      this.updateUiSizing();
+      this.updateFilterModeButton();
 
-      // Well, it hasn't changed, then lets try to load the existing search text.
-    } else if (options?.jsonFilters?.length > 0) {
-      searchText = `${(<IAdvancedFilter[]>options.jsonFilters).map((f) => f.conditions.map((c) => c.value)).join(" ")}`;
+      // We had a column, but now it is empty, or it has changed.
+      if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
+        this.performSearch("");
+
+        // Well, it hasn't changed, then lets try to load the existing search text.
+      } else if (options?.jsonFilters?.length > 0) {
+        const basicFilters = <BasicFilter[]>options.jsonFilters;
+        const previousFilters: string[] = basicFilters.reduce((acc, filter) => {
+          filter?.values?.forEach((value) => {
+            if (value) {
+              acc.push(value.toString());
+            }
+          });
+
+          return acc;
+        }, []);
+
+        if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+          searchText = this.regex || "";
+        } else if (this.previousFilterMode === FilterMode.Regex) {
+          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        } else {
+          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        }
+
+        if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
+          this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
+          this.performSearch(searchText);
+        }
+      }
+
+      this.searchBox.property("value", searchText);
+      this.column = newColumn;
+
+
+      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex && this.regex !== this.formattingSettings.filter.regex.value) {
+        this.host.persistProperties({
+          merge: [{
+            objectName: "filter",
+            selector: null,
+            properties: {
+              regex: this.regex
+            }
+          }]
+        });
+      }
+
+      this.events.renderingFinished(options);
+    } catch (error) {
+      console.error(error);
+      this.events.renderingFailed(options, error);
     }
-
-    this.searchBox.property("value", searchText);
-    this.column = newColumn;
-
-    this.events.renderingFinished(options);
-
   }
 
   /**
@@ -174,23 +258,39 @@ export class Visual implements IVisual {
       fontScaleSml = Math.floor((fontSize / pxToPt) + fontPxAdjSml),
       fontScaleStd = Math.floor((fontSize / pxToPt) + fontPxAdjStd),
       fontScaleLrg = Math.floor((fontSize / pxToPt) + fontPxAdjLrg);
+
     this.searchUi
       .style('height', `${fontScaleStd}px`)
       .style('font-size', `${fontSize}pt`)
       .style('font-family', textBox.font.fontFamily.value);
     this.searchBox
-      .style('width', `calc(100% - ${fontScaleStd}px)`)
+      .style('width', `calc(100% - ${fontScaleStd * (this.formattingSettings.filter.showFilterModeButton.value ? 3 : 1)}px)`) // one for filter button, one for clear button
       .style('padding-right', `${fontScaleStd}px`)
       .style('border-style', textBox.enableBorder.value && 'solid' || 'none')
       .style('border-color', textBox.borderColor.value.value);
     this.searchButton
-      .style('right', `${fontScaleLrg}px`)
+      .style('right', `${fontScaleLrg + (this.formattingSettings.filter.showFilterModeButton.value ? fontScaleStd * 2 : 0)}px`)
       .style('width', `${fontScaleSml}px`)
       .style('height', `${fontScaleSml}px`)
       .style('font-size', `${fontSize}pt`);
+
     this.clearButton
       .style('width', `${fontScaleStd}px`)
       .style('height', `${fontScaleStd}px`);
+
+    this.filterMode
+      .style('width', `${fontScaleStd * 2}px`)
+      .style('height', `${fontScaleStd}px`)
+  }
+
+  private updateFilterModeButton() {
+    const showFilterModeButton = this.formattingSettings.filter.showFilterModeButton.value;
+    this.filterMode
+      .style('display', showFilterModeButton ? 'inline-block' : 'none')
+      .attr("aria-hidden", !showFilterModeButton);
+
+    const filterMode: FilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
+    this.filterMode.property("value", filterMode);
   }
 
   /** 
@@ -199,27 +299,100 @@ export class Visual implements IVisual {
    */
   public performSearch(text: string) {
     if (this.column) {
-      const isBlank = ((text || "") + "").match(/^\s*$/);
-      const target = {
-        table: this.column.queryName.substr(0, this.column.queryName.indexOf(".")),
-        column: this.column.queryName.substr(this.column.queryName.indexOf(".") + 1)
+      const dotIndex = this.column.queryName.indexOf(".");
+      const target: IFilterTarget = {
+        table: this.column.queryName.slice(0, dotIndex),
+        column: this.column.queryName.slice(dotIndex + 1),
       };
 
-      let filter: any = null;
-      let action = FilterAction.remove;
+      const isBlank = ((text || "") + "").match(/^\s*$/);
+      let matches: string[];
+      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+        matches = this.regexSearch(text);
+        this.regex = text;
+      } else {
+        matches = this.basicSearch(text);
+      }
+
+      const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
+      let filter: BasicFilter | null = null;
+      let action: FilterAction = FilterAction.remove;
       if (!isBlank) {
-        filter = new AdvancedFilter(
-          target,
-          "And",
-          {
-            operator: "Contains",
-            value: text
-          }
-        );
+        filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches)
         action = FilterAction.merge;
       }
       this.host.applyJsonFilter(filter, "general", "filter", action);
     }
     this.searchBox.property("value", text);
+  }
+
+  private regexSearch(text: string): string[] {
+    const regex = new RegExp(text);
+    const values: string[] = this.dataView?.categorical?.categories?.[0]?.values.map(x => x.toString()) || [];
+    const filteredValues = values.filter(value => regex.test(value));
+    return filteredValues
+  }
+
+  private basicSearch(text: string): string[] {
+    if (this.formattingSettings.filter.enableMultiSelection.value) {
+      const separator: string = this.formattingSettings.filter.separator.value;
+      return text.split(separator);
+    }
+
+    return [text];
+  }
+
+  /**
+   * Is simple column expression.
+   * Ref - column name.
+   * Entity - table name.
+   */
+  private isColumnExpr(expr: ISQExpr | undefined): expr is {
+    ref: string,
+    kind: 2,
+    source: {
+      entity: string
+    }
+  } {
+    if (expr != null &&
+      'kind' in expr && expr.kind === 2 &&
+      'ref' in expr && typeof expr.ref === 'string' &&
+      'source' in expr && typeof expr.source === 'object' &&
+      'entity' in expr.source && typeof expr.source.entity === 'string'
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Is hierarchy expression.
+   * Level - level name.
+   * Hierarchy - hierarchy name.
+   * Entity - table name.
+   */
+  private isHierarchyExpr(expr: ISQExpr | undefined): expr is {
+    kind: 7,
+    level: string,
+    arg: {
+      hierarchy: string,
+      arg: {
+        entity: string
+      }
+    }
+  } {
+    if (expr != null &&
+      'kind' in expr && expr.kind === 7 &&
+      'level' in expr && typeof expr.level === 'string' &&
+      'arg' in expr && typeof expr.arg === 'object' &&
+      'hierarchy' in expr.arg && typeof expr.arg.hierarchy === 'string' &&
+      'arg' in expr.arg && typeof expr.arg.arg === 'object' &&
+      'entity' in expr.arg.arg && typeof expr.arg.arg.entity === 'string'
+    ) {
+      return true;
+    }
+
+    return false;
   }
 }

@@ -26,8 +26,13 @@
 
 
 import powerbi from "powerbi-visuals-api";
-import {formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
+import {formattingSettings, formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
+import { FilterMode } from "./filterMode";
+import IEnumMember = powerbi.IEnumMember;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+
 import Card = FormattingSettings.SimpleCard;
+import CompositeCard = FormattingSettings.CompositeCard;
 import Model = FormattingSettings.Model;
 import ColorPicker = FormattingSettings.ColorPicker;
 import FontControl = FormattingSettings.FontControl;
@@ -40,15 +45,24 @@ import ToggleSwitch = FormattingSettings.ToggleSwitch;
 
 export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();
-    cards: Card[] = [this.textBox];
+    filter = new FilterSettingsCard();
+    cards: Card[] = [this.textBox, this.filter];
 
     // we don't need color picker for border color if the border is disabled
     public removeBorderColor() {
         this.textBox.slices = [this.textBox.font, this.textBox.enableBorder]
     }
+
+    public setLocalizedOptions(localizationManager: ILocalizationManager) {
+        this.setLocalizedDisplayName(filterModeOptions, localizationManager);
+    }
+
+    private setLocalizedDisplayName(options: IEnumMember[], localizationManager: ILocalizationManager) {
+        options.forEach((option: IEnumMember) => {
+            option.displayName = localizationManager.getDisplayName(option.displayName.toString());
+        });
+    }
 }
-
-
 
 class TextBoxSettingsCard extends Card {
 
@@ -93,5 +107,75 @@ class TextBoxSettingsCard extends Card {
     });
 
     slices: Slice[] = [this.font, this.enableBorder, this.borderColor];
+}
+
+
+const filterModeOptions: IEnumMember[] = [
+    { value: FilterMode.Include, displayName: "Visual_Filter_Include" },
+    { value: FilterMode.Exclude, displayName: "Visual_Filter_Exclude" },
+    { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
+];
+
+class FilterSettingsCard extends CompositeCard {
+    showFilterModeButton = new ToggleSwitch({
+        name: "showFilterModeButton",
+        displayName: "Show filter mode button",
+        displayNameKey: "Visual_Show_Filter_Mode_Button",
+        description: "Show filter mode button",
+        descriptionKey: "Visual_Show_Filter_Mode_Button",
+        value: false,
+    });
+
+    filterMode = new formattingSettings.ItemDropdown({
+        name: "filterMode",
+        displayName: "Filter mode",
+        displayNameKey: "Visual_Filter_Mode",
+        items: filterModeOptions,
+        value: filterModeOptions[0],
+    });
+
+    regex = new formattingSettings.TextInput({
+        name: "regex",
+        displayName: "Regex string",
+        displayNameKey: "Visual_Filter_Regex",
+        value: "",
+        placeholder: "",
+        visible: false,
+    });
+
+    generalFilterGroup = new formattingSettings.Group({
+        name: "generalFilterGroup",
+        displayName: "General",
+        displayNameKey: "Visual_General",
+        slices: [this.showFilterModeButton, this.filterMode, this.regex],
+    });
+
+    enableMultiSelection = new formattingSettings.ToggleSwitch({
+        name: "enableMultiSelection",
+        displayName: "Enable multi selection",
+        displayNameKey: "Visual_Enable_Multi_Selection",
+        value: true,
+    });
+
+    separator = new formattingSettings.TextInput({
+        name: "separator",
+        displayName: "Separator",
+        displayNameKey: "Visual_Separator",
+        value: ";",
+        placeholder: "",
+    });
+
+    multiSelectionGroup = new formattingSettings.Group({
+        name: "multiSelectionGroup",
+        displayName: "Multi selection",
+        displayNameKey: "Visual_Multi_Selection",
+        topLevelSlice: this.enableMultiSelection,
+        slices: [this.separator],
+    });
+
+    name = "filter";
+    displayName = "Filter";
+    displayNameKey = 'Visual_Filter';
+    groups = [this.generalFilterGroup, this.multiSelectionGroup];
 }
 

@@ -17,6 +17,35 @@
         }
       }
     },
+    "filter": {
+      "properties": {
+        "showFilterModeButton": {
+          "type": {
+            "bool": true
+          }
+        },
+        "filterMode": {
+          "type": {
+            "enumeration": []
+          }
+        },
+        "regex": {
+          "type": {
+            "text": true
+          }
+        },
+        "enableMultiSelection": {
+          "type": {
+            "bool": true
+          }
+        },
+        "separator": {
+          "type": {
+            "text": true
+          }
+        }
+      }
+    },
     "textBox": {
       "properties": {
         "fontFamily": {
@@ -66,7 +95,7 @@
           },
           "dataReductionAlgorithm": {
             "top": {
-              "count": 1
+              "count": 30000
             }
           }
         }
