@@ -191,7 +191,9 @@ export class Visual implements IVisual {
       const newColumn = metadata && metadata.columns && metadata.columns[0];
       let searchText = "";
 
+
       this.migrateRegexSetting();
+      this.formattingSettings.migrateRegexSetting()
       this.updateUiSizing();
       this.updateFilterModeButton();
 
@@ -203,54 +205,20 @@ export class Visual implements IVisual {
         // Well, it hasn't changed, then lets try to load the existing search text.
       } else if (options?.jsonFilters?.length > 0) {
         const advancedFilters = <AdvancedFilter[] | BasicFilter[]>options.jsonFilters;
-        const previousFilters: string[] = advancedFilters.reduce((acc, filter) => {
-          if ("conditions" in filter) {
-            filter?.conditions?.forEach((condition) => {
-              if (condition) {
-                acc.push(condition.value.toString());
-              }
-            });
-          }
-          if ("values" in filter) {
-            // If we switched from Regex to Include/Exclude, only take first 10 values to avoid huge search text
-            filter.values.slice(0, 10).forEach((value) => {
-              acc.push(value.toString());
-            });
-          }
 
-
-          return acc;
-        }, []);
-
-        if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
-          searchText = this.regex || "";
-        } else if (this.previousFilterMode === FilterMode.Regex) {
-          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
-        } else {
-          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        if ("conditions" in advancedFilters[0]) {
+          searchText = advancedFilters[0].conditions[0].value.toString();
+        } else if ("values" in advancedFilters[0]) {
+          searchText = advancedFilters[0].values[0].toString();
         }
 
-        if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
-          this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
-          this.performSearch(searchText);
-        }
+        this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
+        this.performSearch(searchText);
+
       }
 
       this.searchBox.property("value", searchText);
       this.column = newColumn;
-
-
-      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex && this.regex !== this.formattingSettings.filter.regex.value) {
-        this.host.persistProperties({
-          merge: [{
-            objectName: "filter",
-            selector: null,
-            properties: {
-              regex: this.regex
-            }
-          }]
-        });
-      }
 
       this.events.renderingFinished(options);
     } catch (error) {
@@ -331,18 +299,8 @@ export class Visual implements IVisual {
     let filter: AdvancedFilter | BasicFilter | null = null;
     let action: FilterAction = FilterAction.merge;
 
-    if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
-      matches = this.regexSearch(text);
-      this.regex = text;
-    } else {
-      matches = this.basicSearch(text);
-    }
-
-    if (matches.length === 1 && this.formattingSettings.filter.filterMode.value.value !== FilterMode.Regex) {
-      filter = new AdvancedFilter(target, "And", { operator: includeMatches ? "Contains" : "DoesNotContain", value: matches[0] });
-    } else {
-      filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
-    }
+    matches = [text]
+    filter = new AdvancedFilter(target, "And", { operator: includeMatches ? "Contains" : "DoesNotContain", value: matches[0] });
 
     this.host.applyJsonFilter(filter, "general", "filter", action);
 
@@ -353,15 +311,6 @@ export class Visual implements IVisual {
     const values: string[] = Array.from(new Set(this.dataView?.categorical?.categories?.[0]?.values.map(x => x.toString()) || []));
     const filteredValues = values.filter(value => regex.test(value));
     return filteredValues
-  }
-
-  private basicSearch(text: string): string[] {
-    if (this.formattingSettings.filter.enableMultiSelection.value) {
-      const separator: string = this.formattingSettings.filter.separator.value;
-      return text.split(separator);
-    }
-
-    return [text];
   }
 
   /**
