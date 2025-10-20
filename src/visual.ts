@@ -318,7 +318,7 @@ export class Visual implements IVisual {
       let filter: AdvancedFilter | null = null;
       let action: FilterAction = FilterAction.remove;
       if (!isBlank) {
-        filter = new AdvancedFilter(target, "Or", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
+        filter = new AdvancedFilter(target, matches.length > 1 ? "Or" : "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
         action = FilterAction.merge;
       }
       this.host.applyJsonFilter(filter, "general", "filter", action);
