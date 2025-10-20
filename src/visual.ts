@@ -306,40 +306,41 @@ export class Visual implements IVisual {
    * @param {string} text - text to filter on
    */
   public performSearch(text: string) {
-    if (this.column) {
-      const dotIndex = this.column.queryName.indexOf(".");
-      const target: IFilterTarget = {
-        table: this.column.queryName.slice(0, dotIndex),
-        column: this.column.queryName.slice(dotIndex + 1),
-      };
-      const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
-
-
-      const isBlank = ((text || "") + "").match(/^\s*$/);
-      let matches: string[];
-      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
-        matches = this.regexSearch(text);
-        this.regex = text;
-
-        const filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
-        this.host.applyJsonFilter(filter, "general", "filter", FilterAction.merge);
-        return
-      } else {
-        matches = this.basicSearch(text);
-      }
-
-      let filter: AdvancedFilter | null = null;
-      let action: FilterAction = FilterAction.remove;
-      if (!isBlank) {
-        filter = new AdvancedFilter(target, matches.length > 1 ? "Or" : "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
-        action = FilterAction.merge;
-      }
-
-      console.log("Applying filter:", filter);
-      // this.host.applyJsonFilter(null, "general", "filter", FilterAction.remove);
-      this.host.applyJsonFilter(filter, "general", "filter", action);
-    }
     this.searchBox.property("value", text);
+
+    const isBlank = ((text || "") + "").match(/^\s*$/);
+    if (!this.column) {
+      return;
+    }
+
+    if (isBlank) {
+      console.log("Removing filter as search text is blank.");
+      this.host.applyJsonFilter(null, "general", "filter", FilterAction.remove);
+      return;
+    }
+
+    const dotIndex = this.column.queryName.indexOf(".");
+    const target: IFilterTarget = {
+      table: this.column.queryName.slice(0, dotIndex),
+      column: this.column.queryName.slice(dotIndex + 1),
+    };
+    const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
+
+    let matches: string[];
+    let filter: AdvancedFilter | BasicFilter | null = null;
+    let action: FilterAction = FilterAction.merge;
+
+    if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+      matches = this.regexSearch(text);
+      this.regex = text;
+      filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
+    } else {
+      matches = this.basicSearch(text);
+      filter = new AdvancedFilter(target, matches.length > 1 ? "Or" : "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
+    }
+
+    this.host.applyJsonFilter(filter, "general", "filter", action);
+
   }
 
   private regexSearch(text: string): string[] {
