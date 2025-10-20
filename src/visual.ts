@@ -224,10 +224,10 @@ export class Visual implements IVisual {
 
         searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
 
-        if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
-          this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
-          this.performSearch(searchText);
-        }
+        // if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
+        this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
+        this.performSearch(searchText);
+        // }
       }
 
       this.searchBox.property("value", searchText);
@@ -297,9 +297,7 @@ export class Visual implements IVisual {
     if (!this.column) {
       return;
     }
-
     if (isBlank) {
-      this.host.applyJsonFilter(null, "general", "filter", FilterAction.remove);
       return;
     }
 
@@ -315,7 +313,12 @@ export class Visual implements IVisual {
     let action: FilterAction = FilterAction.merge;
 
     matches = this.basicSearch(text);
-    filter = new AdvancedFilter(target, matches.length > 1 ? "Or" : "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
+    if (matches.length === 1) {
+      filter = new AdvancedFilter(target, "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })));
+    }
+    if (matches.length > 1) {
+      filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
+    }
 
     this.host.applyJsonFilter(filter, "general", "filter", action);
 
