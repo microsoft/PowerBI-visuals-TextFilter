@@ -34,7 +34,7 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import FilterAction = powerbi.FilterAction;
 import ISQExpr = powerbi.data.ISQExpr;
-import { IFilterTarget, BasicFilter } from "powerbi-models";
+import { IFilterTarget, AdvancedFilter } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
@@ -200,11 +200,11 @@ export class Visual implements IVisual {
 
         // Well, it hasn't changed, then lets try to load the existing search text.
       } else if (options?.jsonFilters?.length > 0) {
-        const basicFilters = <BasicFilter[]>options.jsonFilters;
-        const previousFilters: string[] = basicFilters.reduce((acc, filter) => {
-          filter?.values?.forEach((value) => {
-            if (value) {
-              acc.push(value.toString());
+        const advancedFilters = <AdvancedFilter[]>options.jsonFilters;
+        const previousFilters: string[] = advancedFilters.reduce((acc, filter) => {
+          filter?.conditions?.forEach((condition) => {
+            if (condition) {
+              acc.push(condition.value.toString());
             }
           });
 
@@ -315,10 +315,10 @@ export class Visual implements IVisual {
       }
 
       const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
-      let filter: BasicFilter | null = null;
+      let filter: AdvancedFilter | null = null;
       let action: FilterAction = FilterAction.remove;
       if (!isBlank) {
-        filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches)
+        filter = new AdvancedFilter(target, "Or", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
         action = FilterAction.merge;
       }
       this.host.applyJsonFilter(filter, "general", "filter", action);
