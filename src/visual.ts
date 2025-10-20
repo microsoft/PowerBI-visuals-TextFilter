@@ -34,7 +34,7 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import FilterAction = powerbi.FilterAction;
 import ISQExpr = powerbi.data.ISQExpr;
-import { IFilterTarget, AdvancedFilter } from "powerbi-models";
+import { IFilterTarget, AdvancedFilter, BasicFilter } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
@@ -200,13 +200,21 @@ export class Visual implements IVisual {
 
         // Well, it hasn't changed, then lets try to load the existing search text.
       } else if (options?.jsonFilters?.length > 0) {
-        const advancedFilters = <AdvancedFilter[]>options.jsonFilters;
+        const advancedFilters = <AdvancedFilter[] | BasicFilter[]>options.jsonFilters;
         const previousFilters: string[] = advancedFilters.reduce((acc, filter) => {
-          filter?.conditions?.forEach((condition) => {
-            if (condition) {
-              acc.push(condition.value.toString());
-            }
-          });
+          if ("conditions" in filter) {
+            filter?.conditions?.forEach((condition) => {
+              if (condition) {
+                acc.push(condition.value.toString());
+              }
+            });
+          }
+          if ("values" in filter) {
+            filter.values.forEach((value) => {
+              acc.push(value.toString());
+            });
+          }
+
 
           return acc;
         }, []);
@@ -304,23 +312,31 @@ export class Visual implements IVisual {
         table: this.column.queryName.slice(0, dotIndex),
         column: this.column.queryName.slice(dotIndex + 1),
       };
+      const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
+
 
       const isBlank = ((text || "") + "").match(/^\s*$/);
       let matches: string[];
       if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
         matches = this.regexSearch(text);
         this.regex = text;
+
+        const filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
+        this.host.applyJsonFilter(filter, "general", "filter", FilterAction.merge);
+        return
       } else {
         matches = this.basicSearch(text);
       }
 
-      const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
       let filter: AdvancedFilter | null = null;
       let action: FilterAction = FilterAction.remove;
       if (!isBlank) {
         filter = new AdvancedFilter(target, matches.length > 1 ? "Or" : "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
         action = FilterAction.merge;
       }
+
+      console.log("Applying filter:", filter);
+      // this.host.applyJsonFilter(null, "general", "filter", FilterAction.remove);
       this.host.applyJsonFilter(filter, "general", "filter", action);
     }
     this.searchBox.property("value", text);
@@ -328,7 +344,7 @@ export class Visual implements IVisual {
 
   private regexSearch(text: string): string[] {
     const regex = new RegExp(text);
-    const values: string[] = this.dataView?.categorical?.categories?.[0]?.values.map(x => x.toString()) || [];
+    const values: string[] = Array.from(new Set(this.dataView?.categorical?.categories?.[0]?.values.map(x => x.toString()) || []));
     const filteredValues = values.filter(value => regex.test(value));
     return filteredValues
   }
