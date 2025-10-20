@@ -26,7 +26,7 @@
 
 
 import powerbi from "powerbi-visuals-api";
-import {formattingSettings, formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
+import { formattingSettings, formattingSettings as FormattingSettings } from "powerbi-visuals-utils-formattingmodel";
 import { FilterMode } from "./filterMode";
 import IEnumMember = powerbi.IEnumMember;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
@@ -113,7 +113,7 @@ class TextBoxSettingsCard extends Card {
 const filterModeOptions: IEnumMember[] = [
     { value: FilterMode.Include, displayName: "Visual_Filter_Include" },
     { value: FilterMode.Exclude, displayName: "Visual_Filter_Exclude" },
-    { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
+    // { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
 ];
 
 class FilterSettingsCard extends CompositeCard {

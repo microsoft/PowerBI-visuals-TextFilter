@@ -34,7 +34,7 @@ export enum FilterMode {
 export const FilterModeOptions: string[] = [
     FilterMode.Include,
     FilterMode.Exclude,
-    FilterMode.Regex,
+    // FilterMode.Regex,
 ];
 
 export function isFilterMode(value: string): value is FilterMode {

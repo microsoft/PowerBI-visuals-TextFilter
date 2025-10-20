@@ -191,8 +191,10 @@ export class Visual implements IVisual {
       const newColumn = metadata && metadata.columns && metadata.columns[0];
       let searchText = "";
 
+      this.migrateRegexSetting();
       this.updateUiSizing();
       this.updateFilterModeButton();
+
 
       // We had a column, but now it is empty, or it has changed.
       if (options.dataViews && options.dataViews.length > 0 && this.column && (!newColumn || this.column.queryName !== newColumn.queryName)) {
@@ -210,7 +212,8 @@ export class Visual implements IVisual {
             });
           }
           if ("values" in filter) {
-            filter.values.forEach((value) => {
+            // If we switched from Regex to Include/Exclude, only take first 10 values to avoid huge search text
+            filter.values.slice(0, 10).forEach((value) => {
               acc.push(value.toString());
             });
           }
@@ -219,13 +222,13 @@ export class Visual implements IVisual {
           return acc;
         }, []);
 
-        if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
-          searchText = this.regex || "";
-        } else if (this.previousFilterMode === FilterMode.Regex) {
-          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
-        } else {
-          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
-        }
+        // if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+        //   searchText = this.regex || "";
+        // } else if (this.previousFilterMode === FilterMode.Regex) {
+        //   searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        // } else {
+        searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        // }
 
         if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
           this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
@@ -237,17 +240,17 @@ export class Visual implements IVisual {
       this.column = newColumn;
 
 
-      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex && this.regex !== this.formattingSettings.filter.regex.value) {
-        this.host.persistProperties({
-          merge: [{
-            objectName: "filter",
-            selector: null,
-            properties: {
-              regex: this.regex
-            }
-          }]
-        });
-      }
+      // if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex && this.regex !== this.formattingSettings.filter.regex.value) {
+      //   this.host.persistProperties({
+      //     merge: [{
+      //       objectName: "filter",
+      //       selector: null,
+      //       properties: {
+      //         regex: this.regex
+      //       }
+      //     }]
+      //   });
+      // }
 
       this.events.renderingFinished(options);
     } catch (error) {
@@ -298,6 +301,7 @@ export class Visual implements IVisual {
       .attr("aria-hidden", !showFilterModeButton);
 
     const filterMode: FilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
+
     this.filterMode.property("value", filterMode);
   }
 
@@ -314,7 +318,6 @@ export class Visual implements IVisual {
     }
 
     if (isBlank) {
-      console.log("Removing filter as search text is blank.");
       this.host.applyJsonFilter(null, "general", "filter", FilterAction.remove);
       return;
     }
@@ -324,20 +327,22 @@ export class Visual implements IVisual {
       table: this.column.queryName.slice(0, dotIndex),
       column: this.column.queryName.slice(dotIndex + 1),
     };
-    const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
+    // const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
+
+    const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include;
 
     let matches: string[];
     let filter: AdvancedFilter | BasicFilter | null = null;
     let action: FilterAction = FilterAction.merge;
 
-    if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
-      matches = this.regexSearch(text);
-      this.regex = text;
-      filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
-    } else {
-      matches = this.basicSearch(text);
-      filter = new AdvancedFilter(target, matches.length > 1 ? "Or" : "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
-    }
+    // if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+    //   matches = this.regexSearch(text);
+    //   this.regex = text;
+    //   filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
+    // } else {
+    matches = this.basicSearch(text);
+    filter = new AdvancedFilter(target, matches.length > 1 ? "Or" : "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })))
+    // }
 
     this.host.applyJsonFilter(filter, "general", "filter", action);
 
@@ -411,5 +416,19 @@ export class Visual implements IVisual {
     }
 
     return false;
+  }
+
+  private migrateRegexSetting() {
+    if (!this.formattingSettings.filter.filterMode.value) {
+      this.host.persistProperties({
+        merge: [{
+          objectName: "filter",
+          selector: null,
+          properties: {
+            filterMode: FilterMode.Include
+          }
+        }]
+      });
+    }
   }
 }
