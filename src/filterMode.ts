@@ -28,13 +28,11 @@
 export enum FilterMode {
     Include = "Include",
     Exclude = "Exclude",
-    Regex = "Regex",
 }
 
 export const FilterModeOptions: string[] = [
     FilterMode.Include,
     FilterMode.Exclude,
-    // FilterMode.Regex,
 ];
 
 export function isFilterMode(value: string): value is FilterMode {
