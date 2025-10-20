@@ -222,16 +222,35 @@ export class Visual implements IVisual {
           return acc;
         }, []);
 
-        searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+          searchText = this.regex || "";
+        } else if (this.previousFilterMode === FilterMode.Regex) {
+          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        } else {
+          searchText = previousFilters.join(this.formattingSettings.filter.separator.value);
+        }
 
-        // if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
-        this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
-        this.performSearch(searchText);
-        // }
+        if (this.previousFilterMode !== this.formattingSettings.filter.filterMode.value.value) {
+          this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
+          this.performSearch(searchText);
+        }
       }
 
       this.searchBox.property("value", searchText);
       this.column = newColumn;
+
+
+      if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex && this.regex !== this.formattingSettings.filter.regex.value) {
+        this.host.persistProperties({
+          merge: [{
+            objectName: "filter",
+            selector: null,
+            properties: {
+              regex: this.regex
+            }
+          }]
+        });
+      }
 
       this.events.renderingFinished(options);
     } catch (error) {
@@ -306,17 +325,22 @@ export class Visual implements IVisual {
       table: this.column.queryName.slice(0, dotIndex),
       column: this.column.queryName.slice(dotIndex + 1),
     };
-    const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include;
+    const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
 
     let matches: string[];
     let filter: AdvancedFilter | BasicFilter | null = null;
     let action: FilterAction = FilterAction.merge;
 
-    matches = this.basicSearch(text);
-    if (matches.length === 1) {
-      filter = new AdvancedFilter(target, "And", matches.map(value => ({ operator: includeMatches ? "Contains" : "DoesNotContain", value })));
+    if (this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex) {
+      matches = this.regexSearch(text);
+      this.regex = text;
+    } else {
+      matches = this.basicSearch(text);
     }
-    if (matches.length > 1) {
+
+    if (matches.length === 1 && this.formattingSettings.filter.filterMode.value.value !== FilterMode.Regex) {
+      filter = new AdvancedFilter(target, "And", { operator: includeMatches ? "Contains" : "DoesNotContain", value: matches[0] });
+    } else {
       filter = new BasicFilter(target, includeMatches ? "In" : "NotIn", matches);
     }
 

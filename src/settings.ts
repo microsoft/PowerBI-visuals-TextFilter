@@ -113,7 +113,7 @@ class TextBoxSettingsCard extends Card {
 const filterModeOptions: IEnumMember[] = [
     { value: FilterMode.Include, displayName: "Visual_Filter_Include" },
     { value: FilterMode.Exclude, displayName: "Visual_Filter_Exclude" },
-    // { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
+    { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
 ];
 
 class FilterSettingsCard extends CompositeCard {
