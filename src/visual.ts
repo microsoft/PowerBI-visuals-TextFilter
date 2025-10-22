@@ -193,7 +193,7 @@ export class Visual implements IVisual {
 
 
       this.migrateRegexSetting();
-      this.formattingSettings.migrateRegexSetting()
+      this.formattingSettings.migrateRegexSetting();
       this.updateUiSizing();
       this.updateFilterModeButton();
 
@@ -205,11 +205,10 @@ export class Visual implements IVisual {
         // Well, it hasn't changed, then lets try to load the existing search text.
       } else if (options?.jsonFilters?.length > 0) {
         const advancedFilters = <AdvancedFilter[] | BasicFilter[]>options.jsonFilters;
-
-        if ("conditions" in advancedFilters[0]) {
-          searchText = advancedFilters[0].conditions[0].value.toString();
-        } else if ("values" in advancedFilters[0]) {
-          searchText = advancedFilters[0].values[0].toString();
+        if ("conditions" in advancedFilters[0] && advancedFilters[0]?.conditions.length > 0) {
+          searchText = advancedFilters[0].conditions[0]?.value?.toString() || "";
+        } else if ("values" in advancedFilters[0] && advancedFilters[0]?.values.length > 0) {
+          searchText = advancedFilters[0].values[0]?.toString() || "";
         }
 
         this.previousFilterMode = this.formattingSettings.filter.filterMode.value.value as FilterMode;
@@ -295,11 +294,9 @@ export class Visual implements IVisual {
     };
     const includeMatches = this.formattingSettings.filter.filterMode.value.value === FilterMode.Include || this.formattingSettings.filter.filterMode.value.value === FilterMode.Regex;
 
-    let matches: string[];
+    let matches: string[] = [text];
     let filter: AdvancedFilter | BasicFilter | null = null;
     let action: FilterAction = FilterAction.merge;
-
-    matches = [text]
     filter = new AdvancedFilter(target, "And", { operator: includeMatches ? "Contains" : "DoesNotContain", value: matches[0] });
 
     this.host.applyJsonFilter(filter, "general", "filter", action);
