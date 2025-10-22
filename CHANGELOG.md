@@ -1,4 +1,8 @@
 ## 2.4.3.0
+* Removed regex filter and Multiple select
+* Added support for Advanced filters
+
+## 2.4.3.0
 * Add regex filter mode
 
 ## 2.4.2.0

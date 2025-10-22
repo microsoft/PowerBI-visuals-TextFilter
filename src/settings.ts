@@ -26,7 +26,7 @@
 
 
 import powerbi from "powerbi-visuals-api";
-import {formattingSettings, formattingSettings as FormattingSettings} from "powerbi-visuals-utils-formattingmodel";
+import { formattingSettings, formattingSettings as FormattingSettings } from "powerbi-visuals-utils-formattingmodel";
 import { FilterMode } from "./filterMode";
 import IEnumMember = powerbi.IEnumMember;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
@@ -47,6 +47,12 @@ export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();
     filter = new FilterSettingsCard();
     cards: Card[] = [this.textBox, this.filter];
+
+    public migrateRegexSetting() {
+        if (!this.filter.filterMode.value) {
+            this.filter.filterMode.value = filterModeOptions[0];
+        }
+    }
 
     // we don't need color picker for border color if the border is disabled
     public removeBorderColor() {
@@ -113,7 +119,7 @@ class TextBoxSettingsCard extends Card {
 const filterModeOptions: IEnumMember[] = [
     { value: FilterMode.Include, displayName: "Visual_Filter_Include" },
     { value: FilterMode.Exclude, displayName: "Visual_Filter_Exclude" },
-    { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
+    // { value: FilterMode.Regex, displayName: "Visual_Filter_Regex" },
 ];
 
 class FilterSettingsCard extends CompositeCard {
@@ -150,32 +156,9 @@ class FilterSettingsCard extends CompositeCard {
         slices: [this.showFilterModeButton, this.filterMode, this.regex],
     });
 
-    enableMultiSelection = new formattingSettings.ToggleSwitch({
-        name: "enableMultiSelection",
-        displayName: "Enable multi selection",
-        displayNameKey: "Visual_Enable_Multi_Selection",
-        value: true,
-    });
-
-    separator = new formattingSettings.TextInput({
-        name: "separator",
-        displayName: "Separator",
-        displayNameKey: "Visual_Separator",
-        value: ";",
-        placeholder: "",
-    });
-
-    multiSelectionGroup = new formattingSettings.Group({
-        name: "multiSelectionGroup",
-        displayName: "Multi selection",
-        displayNameKey: "Visual_Multi_Selection",
-        topLevelSlice: this.enableMultiSelection,
-        slices: [this.separator],
-    });
-
     name = "filter";
     displayName = "Filter";
     displayNameKey = 'Visual_Filter';
-    groups = [this.generalFilterGroup, this.multiSelectionGroup];
+    groups = [this.generalFilterGroup];
 }
 
