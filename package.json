@@ -1,6 +1,7 @@
 {
-  "name": "text-filter",
+  "name": "@microsoft/text-filter",
   "version": "2.2.9.0",
+  "private": true,
   "scripts": {
     "pbiviz": "pbiviz",
     "start": "pbiviz start",
