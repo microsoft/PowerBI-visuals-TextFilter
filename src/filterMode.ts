@@ -31,6 +31,15 @@ export enum FilterMode {
     Regex = "Regex",
 }
 
+export type FilterModeInitialState = {
+    filterMode: FilterMode;
+    localizedStrings?: {
+        title: string;
+        include: string;
+        exclude: string;
+    };
+}
+
 export const FilterModeOptions: string[] = [
     FilterMode.Include,
     FilterMode.Exclude,

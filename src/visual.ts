@@ -34,6 +34,9 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import FilterAction = powerbi.FilterAction;
 import ISQExpr = powerbi.data.ISQExpr;
+import VisualDialogPositionType = powerbi.VisualDialogPositionType;
+import DialogAction = powerbi.DialogAction
+import ModalResult = powerbi.extensibility.visual.ModalDialogResult
 import { IFilterTarget, AdvancedFilter, BasicFilter } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
@@ -41,7 +44,8 @@ import { Selection as d3Selection, select as d3Select } from "d3-selection";
 import { TextFilterSettingsModel } from "./settings";
 
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
-import { FilterMode, FilterModeOptions, isFilterMode } from "./filterMode";
+import { FilterModeDialog } from "./filterModeDialog"
+import { FilterMode, FilterModeInitialState, FilterModeOptions, isFilterMode } from "./filterMode";
 
 const pxToPt = 0.75,
   fontPxAdjSml = 20,
@@ -56,7 +60,7 @@ export class Visual implements IVisual {
   private searchBox: d3Selection<HTMLInputElement, unknown, null, undefined>;
   private searchButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
   private clearButton: d3Selection<HTMLButtonElement, unknown, null, undefined>;
-  private filterMode: d3Selection<HTMLSelectElement, unknown, null, undefined>;
+  private filterMode: d3Selection<HTMLButtonElement, unknown, null, undefined>;
 
   private column: powerbi.DataViewMetadataColumn;
   private host: powerbi.extensibility.visual.IVisualHost;
@@ -110,35 +114,51 @@ export class Visual implements IVisual {
       .text("Clear");
 
     this.filterMode = this.searchUi
-      .append("select")
-      .classed("filter-mode-select", true);
+      .append("button")
+      .classed("c-glyph filter-mode-setting", true);
 
-    this.filterMode
-      .selectAll("option")
-      .data(FilterModeOptions)
-      .enter()
-      .append("option")
-      .attr("value", (d) => d)
-      .text((d) => d);
+    this.filterMode.on("click", () => {
+      const initialDialogState: FilterModeInitialState = {
+        filterMode: this.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include,
+        localizedStrings: this.localizationManager ? {
+          title: this.localizationManager.getDisplayName("Visual_Filter_Mode"),
+          include: this.localizationManager.getDisplayName("Visual_Filter_Include"),
+          exclude: this.localizationManager.getDisplayName("Visual_Filter_Exclude")
+        } : undefined
+      };
 
-    this.filterMode.on("change", (event: Event) => {
-      const target = event.target as HTMLSelectElement;
+      const position = {
+        type: VisualDialogPositionType.RelativeToVisual,
+        left: 100,
+        top: 30
+      };
+      const size = { width: 250, height: 250 };
+      const dialogActionsButtons = [DialogAction.OK, DialogAction.Cancel];
+      const dialogOptions = {
+        actionButtons: dialogActionsButtons,
+        size: size,
+        position: position,
+        title: "Filter Options"
+      };
+      this.host.openModalDialog(FilterModeDialog.id, dialogOptions, initialDialogState).
+        then((ret) => {
+          const resultState = ret.resultState as FilterModeInitialState;
+          const selectedMode = resultState.filterMode;
+          this.previousFilterMode = this.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include;
+          this.host.persistProperties({
+            merge: [{
+              objectName: "filter",
+              selector: null,
+              properties: {
+                filterMode: selectedMode
+              }
+            }]
+          });
 
-      if (!isFilterMode(target.value)) {
-        throw new Error(`Invalid filter mode: ${target.value}.`);
-      }
-
-      this.previousFilterMode = this?.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include;
-      const filterMode: FilterMode = target.value;
-      this.host.persistProperties({
-        merge: [{
-          objectName: "filter",
-          selector: null,
-          properties: {
-            filterMode: filterMode
-          }
-        }]
-      });
+        }).
+        catch(error => {
+          console.log("Dialog error:", error);
+        });
     });
 
     this.searchBox.on("keydown", (event) => {
@@ -257,7 +277,7 @@ export class Visual implements IVisual {
       .style('height', `${fontScaleStd}px`);
 
     this.filterMode
-      .style('width', `${fontScaleStd * 2}px`)
+      .style('width', `${fontScaleStd}px`)
       .style('height', `${fontScaleStd}px`)
   }
 
