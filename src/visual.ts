@@ -36,6 +36,7 @@ import FilterAction = powerbi.FilterAction;
 import ISQExpr = powerbi.data.ISQExpr;
 import VisualDialogPositionType = powerbi.VisualDialogPositionType;
 import DialogAction = powerbi.DialogAction
+import DialogOptions = powerbi.extensibility.visual.DialogOpenOptions
 import ModalResult = powerbi.extensibility.visual.ModalDialogResult
 import { IFilterTarget, AdvancedFilter, BasicFilter } from "powerbi-models";
 
@@ -115,48 +116,22 @@ export class Visual implements IVisual {
 
     this.filterMode = this.searchUi
       .append("button")
+      .style("display", "none")
       .classed("c-glyph filter-mode-setting", true);
 
     this.filterMode.on("click", () => {
-      const initialDialogState: FilterModeInitialState = {
-        filterMode: this.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include,
-        localizedStrings: this.localizationManager ? {
-          title: this.localizationManager.getDisplayName("Visual_Filter_Mode"),
-          include: this.localizationManager.getDisplayName("Visual_Filter_Include"),
-          exclude: this.localizationManager.getDisplayName("Visual_Filter_Exclude")
-        } : undefined
-      };
-
-      const position = {
-        type: VisualDialogPositionType.RelativeToVisual,
-        left: 100,
-        top: 30
-      };
-      const size = { width: 250, height: 250 };
-      const dialogActionsButtons = [DialogAction.OK, DialogAction.Cancel];
-      const dialogOptions = {
-        actionButtons: dialogActionsButtons,
-        size: size,
-        position: position,
-        title: "Filter Options"
-      };
-      this.host.openModalDialog(FilterModeDialog.id, dialogOptions, initialDialogState).
-        then((ret) => {
+      const { dialogOptions, initialDialogState } = this.prepareDialogData();
+      
+      this.host.openModalDialog(FilterModeDialog.id, dialogOptions, initialDialogState)
+        .then((ret) => {
+          if (!ret || ret.actionId === DialogAction.Cancel || ret.resultState == null) {
+            return;
+          }
           const resultState = ret.resultState as FilterModeInitialState;
           const selectedMode = resultState.filterMode;
-          this.previousFilterMode = this.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include;
-          this.host.persistProperties({
-            merge: [{
-              objectName: "filter",
-              selector: null,
-              properties: {
-                filterMode: selectedMode
-              }
-            }]
-          });
-
-        }).
-        catch(error => {
+          this.changeFilterMode(selectedMode)
+        })
+        .catch(error => {
           console.log("Dialog error:", error);
         });
     });
@@ -396,5 +371,45 @@ export class Visual implements IVisual {
         }]
       });
     }
+  }
+
+  private prepareDialogData(): { dialogOptions: DialogOptions, initialDialogState: FilterModeInitialState } {
+    const initialDialogState: FilterModeInitialState = {
+      filterMode: this.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include,
+      localizedStrings: this.localizationManager ? {
+        title: this.localizationManager.getDisplayName("Visual_Filter_Mode"),
+        include: this.localizationManager.getDisplayName("Visual_Filter_Include"),
+        exclude: this.localizationManager.getDisplayName("Visual_Filter_Exclude")
+      } : undefined
+    };
+
+    const position = {
+      type: VisualDialogPositionType.RelativeToVisual,
+      left: 100,
+      top: 30
+    };
+    const size = { width: 250, height: 250 };
+    const dialogActionsButtons = [DialogAction.OK, DialogAction.Cancel];
+    const dialogOptions = {
+      actionButtons: dialogActionsButtons,
+      size: size,
+      position: position,
+      title: "Filter Options"
+    };
+
+    return { dialogOptions, initialDialogState };
+  }
+
+  private changeFilterMode(newMode: FilterMode) {
+    this.previousFilterMode = this.formattingSettings?.filter?.filterMode?.value?.value as FilterMode || FilterMode.Include;
+    this.host.persistProperties({
+      merge: [{
+        objectName: "filter",
+        selector: null,
+        properties: {
+          filterMode: newMode
+        }
+      }]
+    });
   }
 }

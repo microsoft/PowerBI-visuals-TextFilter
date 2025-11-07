@@ -53,6 +53,8 @@ export class FilterModeDialog {
                 }
                 return d;
             })
+            .style("border", "none")
+            .style("outline", "none")
             .property("selected", (d) => d === this.currentFilterMode);
 
         this.filterMode.on("change", (event) => {
