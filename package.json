@@ -23,6 +23,7 @@
     "d3-selection": "^3.0.0",
     "powerbi-models": "^1.15.2",
     "powerbi-visuals-api": "~5.11.0",
-    "powerbi-visuals-utils-formattingmodel": "^6.2.2"
+    "powerbi-visuals-utils-formattingmodel": "^6.2.2",
+    "powerbi-visuals-utils-onobjectutils": "^6.0.3"
   }
 }

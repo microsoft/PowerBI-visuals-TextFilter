@@ -104,5 +104,7 @@
   ],
   "privileges": [],
   "supportsSynchronizingFilterState": true,
-  "supportsKeyboardFocus": true
+  "supportsKeyboardFocus": true,
+  "supportsOnObjectFormatting": true,
+  "enablePointerEventsFormatMode": true
 }

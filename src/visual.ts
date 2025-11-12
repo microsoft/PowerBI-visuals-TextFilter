@@ -42,11 +42,19 @@ import { IFilterTarget, AdvancedFilter, BasicFilter } from "powerbi-models";
 
 import { Selection as d3Selection, select as d3Select } from "d3-selection";
 
-import { TextFilterSettingsModel } from "./settings";
+import { TextFilterObjectName, TextFilterSettingsModel } from "./settings";
 
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { FilterModeDialog } from "./filterModeDialog"
-import { FilterMode, FilterModeInitialState, FilterModeOptions, isFilterMode } from "./filterMode";
+import { FilterMode, FilterModeInitialState } from "./filterMode";
+
+// powerbi.visuals.subselections
+import { HtmlSubSelectableClass, SubSelectableDirectEdit, SubSelectableDisplayNameAttribute, SubSelectableObjectNameAttribute, SubSelectableTypeAttribute } from "powerbi-visuals-utils-onobjectutils";
+import CustomVisualSubSelection = powerbi.visuals.CustomVisualSubSelection;
+import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
+
+import { TextFilterOnObjectService } from "./onObject/onObjectServise"
+
 
 const pxToPt = 0.75,
   fontPxAdjSml = 20,
@@ -73,6 +81,8 @@ export class Visual implements IVisual {
 
   private previousFilterMode: FilterMode;
   private regex: string;
+
+  public visualOnObjectFormatting: TextFilterOnObjectService
 
   constructor(options: VisualConstructorOptions) {
     this.events = options.host.eventService;
@@ -121,7 +131,7 @@ export class Visual implements IVisual {
 
     this.filterMode.on("click", () => {
       const { dialogOptions, initialDialogState } = this.prepareDialogData();
-      
+
       this.host.openModalDialog(FilterModeDialog.id, dialogOptions, initialDialogState)
         .then((ret) => {
           if (!ret || ret.actionId === DialogAction.Cancel || ret.resultState == null) {
@@ -164,6 +174,7 @@ export class Visual implements IVisual {
     this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
 
     this.host = options.host;
+    this.visualOnObjectFormatting = new TextFilterOnObjectService(options.element, options.host, this.localizationManager);
   }
 
   public getFormattingModel(): powerbi.visuals.FormattingModel {
@@ -191,6 +202,7 @@ export class Visual implements IVisual {
       this.formattingSettings.migrateRegexSetting();
       this.updateUiSizing();
       this.updateFilterModeButton();
+      this.applyOnObjectStylesToSearch(options.formatMode);
 
 
       // We had a column, but now it is empty, or it has changed.
@@ -211,9 +223,10 @@ export class Visual implements IVisual {
 
       }
 
+      
+      this.applyOnObjectFormatting(options.formatMode);
       this.searchBox.property("value", searchText);
       this.column = newColumn;
-
       this.events.renderingFinished(options);
     } catch (error) {
       console.error(error);
@@ -254,6 +267,18 @@ export class Visual implements IVisual {
     this.filterMode
       .style('width', `${fontScaleStd}px`)
       .style('height', `${fontScaleStd}px`)
+  }
+
+  private applyOnObjectFormatting(isFormatMode: boolean) {
+    this.visualOnObjectFormatting.setFormatMode(isFormatMode);
+  }
+
+  private applyOnObjectStylesToSearch(formatMode: boolean) {
+    this.searchButton
+      .classed(HtmlSubSelectableClass, formatMode)
+      .attr(SubSelectableObjectNameAttribute, TextFilterObjectName.Filter)
+      .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+      .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName("Visual_Title"));
   }
 
   private updateFilterModeButton() {

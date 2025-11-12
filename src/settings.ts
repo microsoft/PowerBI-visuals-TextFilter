@@ -43,6 +43,11 @@ import ToggleSwitch = FormattingSettings.ToggleSwitch;
 
 // import { Card, ColorPicker, FontControl, FontPicker, Model, NumUpDown, Slice, ToggleSwitch } from "powerbi-visuals-utils-formattingmodel";
 
+export const enum TextFilterObjectName {
+    TextBox = "textBox",
+    Filter = "filter",
+}
+
 export class TextFilterSettingsModel extends Model {
     textBox = new TextBoxSettingsCard();
     filter = new FilterSettingsCard();
@@ -72,7 +77,7 @@ export class TextFilterSettingsModel extends Model {
 
 class TextBoxSettingsCard extends Card {
 
-    name: string = "textBox";
+    name: string = TextFilterObjectName.TextBox;
     displayNameKey?: string = "Visual_Textbox_Settings";
 
 
@@ -123,6 +128,7 @@ const filterModeOptions: IEnumMember[] = [
 ];
 
 class FilterSettingsCard extends CompositeCard {
+
     showFilterModeButton = new ToggleSwitch({
         name: "showFilterModeButton",
         displayName: "Show filter mode button",
@@ -156,7 +162,7 @@ class FilterSettingsCard extends CompositeCard {
         slices: [this.showFilterModeButton, this.filterMode, this.regex],
     });
 
-    name = "filter";
+    name = TextFilterObjectName.Filter;
     displayName = "Filter";
     displayNameKey = 'Visual_Filter';
     groups = [this.generalFilterGroup];
