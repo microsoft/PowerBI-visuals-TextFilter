@@ -100,7 +100,15 @@ export class Visual implements IVisual {
     window.addEventListener('focus', (event) => {
       // focus entered from the parent window
       if (event.target === window){
-        this.searchBox.node().focus();
+        // Defer: moving focus synchronously inside the window focus event leaves the
+        // Windows IME (TSF) detached from the input in Chromium, so IME languages
+        // (e.g. Japanese) type raw Latin characters until focus changes again.
+        requestAnimationFrame(() => {
+          const input = this.searchBox.node();
+          if (input && document.activeElement !== input) {
+            input.focus();
+          }
+        });
       }
     })
 
