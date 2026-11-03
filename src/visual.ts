@@ -100,7 +100,17 @@ export class Visual implements IVisual {
     window.addEventListener('focus', (event) => {
       // focus entered from the parent window
       if (event.target === window){
-        this.searchBox.node().focus();
+        // Defer: moving focus synchronously inside the window focus event leaves the
+        // Windows IME (TSF) detached from the input in Chromium, so IME languages
+        // (e.g. Japanese) type raw Latin characters until focus changes again.
+        requestAnimationFrame(() => {
+          // Only redirect when focus landed on the frame itself (keyboard / a11y entry),
+          // not when the user clicked the input or the Search/Clear buttons.
+          const active = document.activeElement;
+          if (!active || active === document.body) {
+            this.searchBox.node()?.focus();
+          }
+        });
       }
     })
 
